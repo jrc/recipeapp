@@ -3,54 +3,24 @@
  * Contains all functions for data transformation (JSON-LD -> Markdown, Markdown -> HTML).
  */
 
+import { createIngredientRegexes } from "./ingredients";
+
 // --- Module-level store for ingredient patterns ---
 let ingredientPatterns: RegExp[] = [];
-
-/**
- * Converts a pattern string from ingredients.txt into a regular expression.
- * Handles optional words `[word]` and plurals `word~`.
- * @param pattern The raw pattern string (e.g., "gorgonzola [cheese]").
- */
-export function createRegExpFromIngredientPattern(pattern: string): RegExp {
-  let processedPattern = pattern.trim();
-
-  // Handle plurals first: word~ -> words?
-  processedPattern = processedPattern.replace(/(\w+)~/g, "$1s?");
-
-  // Handle optional words with preceding spaces: " [word]" -> "(?:\s+word)?"
-  processedPattern = processedPattern.replace(
-    /\s+\[([^\]]+)\]/g,
-    "(?:\\s+$1)?",
-  );
-
-  // Handle spaces in multi-word patterns
-  processedPattern = processedPattern.replace(/\s+/g, "\\s+");
-
-  // Use word boundaries `\b` to match whole words only.
-  // `i` flag for case-insensitivity
-  return new RegExp(`\\b(${processedPattern})\\b`, "i");
-}
 
 /**
  * Initializes the parser with ingredient patterns. Must be called on startup.
  * @param ingredientsText The raw text content from ingredients.txt.
  */
 export function initialize(ingredientsText: string) {
-  ingredientPatterns = ingredientsText
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith("#"))
-    // IMPORTANT: Sort by length descending to match longer phrases first
-    // (e.g., "gorgonzola cheese" before just "cheese")
-    .sort((a, b) => b.length - a.length)
-    .map(createRegExpFromIngredientPattern);
+  ingredientPatterns = createIngredientRegexes(ingredientsText);
 }
 
 /**
  * Finds and wraps matching ingredients in a line of text with <strong> tags.
  * @param line A single line of text, like an ingredient from the recipe.
  */
-export function highlightIngredients(line: string): string {
+export function emphasizeIngredients(line: string): string {
   let highlightedLine = line;
   for (const pattern of ingredientPatterns) {
     // Use replace with global flag to replace all occurrences
@@ -172,11 +142,11 @@ export function markdownToHtml(markdown: string): string {
   // --- List Processing ---
   // Process unordered lists (ingredients) - mark them with a special class
   html = html.replace(/^- (.*)$/gm, (_match, content: string) => {
-    return `<li class="unordered">${highlightIngredients(content)}</li>`;
+    return `<li class="unordered">${emphasizeIngredients(content)}</li>`;
   });
   // Process ordered lists (instructions) - mark them with a special class
   html = html.replace(/^\d+\.\s*(.*)$/gm, (_match, content: string) => {
-    return `<li class="ordered">${highlightIngredients(content)}</li>`;
+    return `<li class="ordered">${emphasizeIngredients(content)}</li>`;
   });
 
   // Wrap consecutive list items in appropriate list tags

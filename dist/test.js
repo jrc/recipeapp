@@ -18,7 +18,7 @@ function initialize(ingredientsText) {
     .sort((a, b) => b.length - a.length)
     .map(createRegExpFromIngredientPattern);
 }
-function highlightIngredients(line) {
+function testEmphasizeIngredients(line) {
   let highlightedLine = line;
   for (const pattern of ingredientPatterns) {
     highlightedLine = highlightedLine.replaceAll(
@@ -66,37 +66,39 @@ function testcreateRegExpFromIngredientPattern() {
   );
   console.log("\u2713 createRegExpFromIngredientPattern tests passed");
 }
-function testHighlightIngredients() {
-  console.log("Testing highlightIngredients...");
+function testEmphasizeIngredients() {
+  console.log("Testing testEmphasizeIngredients...");
   const testIngredients = "gorgonzola [cheese]\nalmond~\nred pepper flakes";
   initialize(testIngredients);
-  const result1 = highlightIngredients("I like gorgonzola.");
+  const result1 = testEmphasizeIngredients("I like gorgonzola.");
   console.assert(
     result1 === "I like <strong>gorgonzola</strong>.",
     "Should highlight basic ingredient",
   );
-  const result2 = highlightIngredients("I like gorgonzola cheese.");
+  const result2 = testEmphasizeIngredients("I like gorgonzola cheese.");
   console.assert(
     result2 === "I like <strong>gorgonzola cheese</strong>.",
     "Should highlight with optional word",
   );
-  const result3 = highlightIngredients("Use 100g almonds");
+  const result3 = testEmphasizeIngredients("Use 100g almonds");
   console.assert(
     result3 === "Use 100g <strong>almonds</strong>",
     "Should highlight plural form",
   );
-  const result4 = highlightIngredients("A pinch of red pepper flakes is nice.");
+  const result4 = testEmphasizeIngredients(
+    "A pinch of red pepper flakes is nice.",
+  );
   console.assert(
     result4 === "A pinch of <strong>red pepper flakes</strong> is nice.",
     "Should highlight multi-word ingredient",
   );
-  const result5 = highlightIngredients("I like chocolate.");
+  const result5 = testEmphasizeIngredients("I like chocolate.");
   console.assert(
     result5 === "I like chocolate.",
     "Should not highlight non-ingredients",
   );
-  console.log("\u2713 highlightIngredients tests passed");
+  console.log("\u2713 testEmphasizeIngredients tests passed");
 }
 testcreateRegExpFromIngredientPattern();
-testHighlightIngredients();
+testEmphasizeIngredients();
 console.log("All tests completed!");

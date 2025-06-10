@@ -1,8 +1,5 @@
-import {
-  createRegExpFromIngredientPattern,
-  highlightIngredients,
-  initialize,
-} from "../src/parser";
+import { emphasizeIngredients, initialize } from "../src/parser";
+import { createRegExpFromIngredientPattern } from "../src/ingredients";
 
 // Test createRegExpFromIngredientPattern function
 function testcreateRegExpFromIngredientPattern() {
@@ -51,50 +48,50 @@ function testcreateRegExpFromIngredientPattern() {
   console.log("✓ createRegExpFromIngredientPattern tests passed");
 }
 
-// Test highlightIngredients function
+// Test emphasizeIngredients function
 function testHighlightIngredients() {
-  console.log("Testing highlightIngredients...");
+  console.log("Testing emphasizeIngredients...");
 
   // Initialize with test ingredients
   const testIngredients = "gorgonzola [cheese]\nalmond~\nred pepper flakes";
   initialize(testIngredients);
 
   // Test basic highlighting
-  const result1 = highlightIngredients("I like gorgonzola.");
+  const result1 = emphasizeIngredients("I like gorgonzola.");
   console.assert(
     result1 === "I like <strong>gorgonzola</strong>.",
     "Should highlight basic ingredient",
   );
 
   // Test optional word highlighting
-  const result2 = highlightIngredients("I like gorgonzola cheese.");
+  const result2 = emphasizeIngredients("I like gorgonzola cheese.");
   console.assert(
     result2 === "I like <strong>gorgonzola cheese</strong>.",
     "Should highlight with optional word",
   );
 
   // Test plural highlighting
-  const result3 = highlightIngredients("Use 100g almonds");
+  const result3 = emphasizeIngredients("Use 100g almonds");
   console.assert(
     result3 === "Use 100g <strong>almonds</strong>",
     "Should highlight plural form",
   );
 
   // Test multi-word highlighting
-  const result4 = highlightIngredients("A pinch of red pepper flakes is nice.");
+  const result4 = emphasizeIngredients("A pinch of red pepper flakes is nice.");
   console.assert(
     result4 === "A pinch of <strong>red pepper flakes</strong> is nice.",
     "Should highlight multi-word ingredient",
   );
 
   // Test no match
-  const result5 = highlightIngredients("I like chocolate.");
+  const result5 = emphasizeIngredients("I like chocolate.");
   console.assert(
     result5 === "I like chocolate.",
     "Should not highlight non-ingredients",
   );
 
-  console.log("✓ highlightIngredients tests passed");
+  console.log("✓ emphasizeIngredients tests passed");
 }
 
 // Run tests
