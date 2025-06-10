@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Recipe App</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+
+    <body>
+        <main>
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="import">
+                        Import
+                    </button>
+                    <button class="tab-button" data-tab="edit">Edit</button>
+                    <button class="tab-button" data-tab="view">View</button>
+                </div>
+                <div class="tab-content active" id="import">
+                    <input
+                        type="url"
+                        placeholder="Enter recipe URL"
+                        value="https://cooking.nytimes.com/recipes/1026754-spiced-couscous-with-fragrant-steamed-fish"
+                    />
+                    <button>Import</button>
+                </div>
+                <div class="tab-content" id="edit">
+                    <textarea rows="25"></textarea>
+                </div>
+                <div class="tab-content" id="view">
+                    <div id="renderedRecipeView">
+                        <p>Rendered recipe will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script src="dist/main.js"></script>
+    </body>
+</html>
