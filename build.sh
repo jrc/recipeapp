@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# This script builds and serves your web application using esbuild.
-# It recompiles TypeScript to JavaScript on changes and serves static files.
+# Build and serve the main application and the tests with esbuild.
 
-echo "Starting esbuild with watch and serve..."
+echo "Starting esbuild with watch and serve for application and tests..."
 
-esbuild src/main.ts \
+esbuild src/main.ts tests/parser_tests.ts \
   --bundle \
   --watch \
   --servedir=. \
   --outdir=dist \
   --public-path=/dist \
   --entry-names=[name]
+
 
 echo "esbuild stopped."

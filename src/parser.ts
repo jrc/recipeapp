@@ -3,7 +3,7 @@
  * Contains all functions for data transformation (JSON-LD -> Markdown, Markdown -> HTML).
  */
 
-// --- NEW: Module-level store for ingredient patterns ---
+// --- Module-level store for ingredient patterns ---
 let ingredientPatterns: RegExp[] = [];
 
 /**
@@ -11,16 +11,24 @@ let ingredientPatterns: RegExp[] = [];
  * Handles optional words `[word]` and plurals `word~`.
  * @param pattern The raw pattern string (e.g., "gorgonzola [cheese]").
  */
-function createRegExpFromPattern(pattern: string): RegExp {
-  const processedPattern = pattern
-    .trim()
-    .replace(/(\w+)~/g, "$1s?") // Handle plurals: almond~ -> almonds?
-    .replace(/\[(\w+)\]/g, "(?:\\s+$1)?") // Handle optional words: [cheese] -> (?:\s+cheese)?
-    .replace(/\s+/g, "\\s+"); // Handle spaces in multi-word patterns
+export function createRegExpFromIngredientPattern(pattern: string): RegExp {
+  let processedPattern = pattern.trim();
+
+  // Handle plurals first: word~ -> words?
+  processedPattern = processedPattern.replace(/(\w+)~/g, "$1s?");
+
+  // Handle optional words with preceding spaces: " [word]" -> "(?:\s+word)?"
+  processedPattern = processedPattern.replace(
+    /\s+\[([^\]]+)\]/g,
+    "(?:\\s+$1)?",
+  );
+
+  // Handle spaces in multi-word patterns
+  processedPattern = processedPattern.replace(/\s+/g, "\\s+");
 
   // Use word boundaries `\b` to match whole words only.
-  // `i` flag for case-insensitivity, `g` for string.matchAll()
-  return new RegExp(`\\b(${processedPattern})\\b`, "ig");
+  // `i` flag for case-insensitivity
+  return new RegExp(`\\b(${processedPattern})\\b`, "i");
 }
 
 /**
@@ -35,26 +43,26 @@ export function initialize(ingredientsText: string) {
     // IMPORTANT: Sort by length descending to match longer phrases first
     // (e.g., "gorgonzola cheese" before just "cheese")
     .sort((a, b) => b.length - a.length)
-    .map(createRegExpFromPattern);
+    .map(createRegExpFromIngredientPattern);
 }
 
 /**
  * Finds and wraps matching ingredients in a line of text with <strong> tags.
  * @param line A single line of text, like an ingredient from the recipe.
  */
-function highlightIngredients(line: string): string {
+export function highlightIngredients(line: string): string {
   let highlightedLine = line;
   for (const pattern of ingredientPatterns) {
-    // Use replace with a callback to avoid issues with special characters in the replacement string
-    highlightedLine = highlightedLine.replaceAll(
-      pattern,
+    // Use replace with global flag to replace all occurrences
+    const globalPattern = new RegExp(pattern.source, "ig");
+    highlightedLine = highlightedLine.replace(
+      globalPattern,
       (match) => `<strong>${match}</strong>`,
     );
   }
   return highlightedLine;
 }
 
-// --- (formatIsoDuration function remains unchanged) ---
 export function formatIsoDuration(isoDuration: string): string {
   const regex = /PT(?:(\d+)H)?(?:(\d+)M)?/;
   const matches = isoDuration.match(regex);
@@ -67,8 +75,7 @@ export function formatIsoDuration(isoDuration: string): string {
   return parts.join(" ");
 }
 
-// --- (convertJsonToRecipeMarkdown function remains unchanged) ---
-export function convertJsonToRecipeMarkdown(recipeJson: any): string {
+export function convertJsonLdToRecipeMarkdown(recipeJson: any): string {
   const markdownParts: string[] = [];
   if (recipeJson.image) {
     let imageUrl: string | undefined;
@@ -175,13 +182,13 @@ export function markdownToHtml(markdown: string): string {
   // Wrap consecutive list items in appropriate list tags
   html = html.replace(/((?:<li class="unordered">.*<\/li>\n?)+)/g, (match) => {
     // Remove the class attributes before wrapping
-    const cleanMatch = match.replace(/ class="unordered"/g, '');
+    const cleanMatch = match.replace(/ class="unordered"/g, "");
     return `<ul>\n${cleanMatch}</ul>`;
   });
-  
+
   html = html.replace(/((?:<li class="ordered">.*<\/li>\n?)+)/g, (match) => {
     // Remove the class attributes before wrapping
-    const cleanMatch = match.replace(/ class="ordered"/g, '');
+    const cleanMatch = match.replace(/ class="ordered"/g, "");
     return `<ol>\n${cleanMatch}</ol>`;
   });
 

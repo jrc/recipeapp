@@ -41,7 +41,7 @@ async function handleImport(): Promise<void> {
         : null;
 
     if (recipeJson) {
-      const recipeMarkdown = parser.convertJsonToRecipeMarkdown(recipeJson);
+      const recipeMarkdown = parser.convertJsonLdToRecipeMarkdown(recipeJson);
       ui.elements.editTextArea.value = recipeMarkdown;
       ui.switchToTab("edit", handleTabSwitch);
     } else {
