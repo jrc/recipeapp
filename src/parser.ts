@@ -163,21 +163,26 @@ export function markdownToHtml(markdown: string): string {
   html = html.replace(/_(.*?)_/g, "<em>$1</em>");
 
   // --- List Processing ---
-  // Unordered lists (ingredients)
+  // Process unordered lists (ingredients) - mark them with a special class
   html = html.replace(/^- (.*)$/gm, (_match, content: string) => {
-    return `<li>${highlightIngredients(content)}</li>`;
+    return `<li class="unordered">${highlightIngredients(content)}</li>`;
   });
-  // Ordered lists (instructions)
+  // Process ordered lists (instructions) - mark them with a special class
   html = html.replace(/^\d+\.\s*(.*)$/gm, (_match, content: string) => {
-    return `<li>${highlightIngredients(content)}</li>`;
+    return `<li class="ordered">${highlightIngredients(content)}</li>`;
   });
 
-  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, (match) => {
-    // This logic needs to be a bit smarter to create the correct list type
-    // A simple check for a number at the start of the first li content is enough
-    const isOrdered =
-      /<li\s*>\s*\d*\.?\s*/.test(match) || /<li\s*>\s*\d+\.\s*/.test(match);
-    return isOrdered ? `<ol>\n${match}</ol>` : `<ul>\n${match}</ul>`;
+  // Wrap consecutive list items in appropriate list tags
+  html = html.replace(/((?:<li class="unordered">.*<\/li>\n?)+)/g, (match) => {
+    // Remove the class attributes before wrapping
+    const cleanMatch = match.replace(/ class="unordered"/g, '');
+    return `<ul>\n${cleanMatch}</ul>`;
+  });
+  
+  html = html.replace(/((?:<li class="ordered">.*<\/li>\n?)+)/g, (match) => {
+    // Remove the class attributes before wrapping
+    const cleanMatch = match.replace(/ class="ordered"/g, '');
+    return `<ol>\n${cleanMatch}</ol>`;
   });
 
   html = html.replace(/\n{2,}/g, "\n\n");
