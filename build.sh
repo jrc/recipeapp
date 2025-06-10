@@ -4,7 +4,7 @@
 
 echo "Starting esbuild with watch and serve for application and tests..."
 
-esbuild src/main.ts tests/parser_tests.ts \
+esbuild src/main.ts tests/parser.test.ts \
   --bundle \
   --watch \
   --servedir=. \

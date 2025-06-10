@@ -1,7 +1,18 @@
 /**
- * ingredients.ts
+ * parse-ingredient.ts
  * Handles ingredient pattern processing and matching.
  */
+
+// --- Module-level store for ingredient patterns ---
+let ingredientPatterns: RegExp[] = [];
+
+/**
+ * Initializes the parser with ingredient patterns. Must be called on startup.
+ * @param ingredientsText The raw text content from ingredients.txt.
+ */
+export function initialize(ingredientsText: string) {
+  ingredientPatterns = createIngredientRegexes(ingredientsText);
+}
 
 export function createRegExpFromIngredientPattern(pattern: string): RegExp {
   let processedPattern = pattern.trim();
@@ -23,7 +34,7 @@ export function createRegExpFromIngredientPattern(pattern: string): RegExp {
   return new RegExp(`\\b(${processedPattern})\\b`, "i");
 }
 
-export function createIngredientRegexes(ingredientsText: string): RegExp[] {
+function createIngredientRegexes(ingredientsText: string): RegExp[] {
   return (
     ingredientsText
       .split("\n")
@@ -34,4 +45,21 @@ export function createIngredientRegexes(ingredientsText: string): RegExp[] {
       .sort((a, b) => b.length - a.length)
       .map(createRegExpFromIngredientPattern)
   );
+}
+
+/**
+ * Finds and wraps matching ingredients in a line of text with <strong> tags.
+ * @param line A single line of text, like an ingredient from the recipe.
+ */
+export function emphasizeIngredients(line: string): string {
+  let highlightedLine = line;
+  for (const pattern of ingredientPatterns) {
+    // Use replace with global flag to replace all occurrences
+    const globalPattern = new RegExp(pattern.source, "ig");
+    highlightedLine = highlightedLine.replace(
+      globalPattern,
+      (match) => `<strong>${match}</strong>`,
+    );
+  }
+  return highlightedLine;
 }

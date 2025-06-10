@@ -1,8 +1,11 @@
-import { emphasizeIngredients, initialize } from "../src/parser";
-import { createRegExpFromIngredientPattern } from "../src/ingredients";
+import {
+  createRegExpFromIngredientPattern,
+  emphasizeIngredients,
+  initialize,
+} from "../src/parse-ingredient";
 
 // Test createRegExpFromIngredientPattern function
-function testcreateRegExpFromIngredientPattern() {
+function testCreateRegExpFromIngredientPattern() {
   console.log("Testing createRegExpFromIngredientPattern...");
 
   // Test basic pattern
@@ -94,7 +97,7 @@ function testHighlightIngredients() {
   console.log("✓ emphasizeIngredients tests passed");
 }
 
-// Run tests
-testcreateRegExpFromIngredientPattern();
-testHighlightIngredients();
-console.log("All tests completed!");
+export function runParseIngredientTests() {
+  testCreateRegExpFromIngredientPattern();
+  testHighlightIngredients();
+}
