@@ -5,7 +5,6 @@ body {
 }
 
 /* Based on https://jrl.ninja/etc/1/ */
-/* Default for smaller screens (mobile portrait, smaller tablets) */
 main {
     max-width: 70ch;
     padding: 2ch;
@@ -82,6 +81,8 @@ main {
     color: #b85c00;
 }
 
+/* Optimize View tab for printing */
+
 @media print {
     main {
         max-width: 100% !important;
@@ -96,4 +97,15 @@ main {
         border: none !important;
         padding: 0 !important;
     }
+}
+
+/* Toggle strikethrough when clicking on ingredients and instruction list items */
+
+.strikethrough {
+    text-decoration: line-through;
+}
+
+#renderedRecipeView li,
+#renderedRecipeView p {
+    cursor: pointer;
 }

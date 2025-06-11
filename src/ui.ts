@@ -66,3 +66,25 @@ export function initializeUI(
   elements.urlInput.addEventListener("input", updateImportButtonState);
   updateImportButtonState(); // Set initial state
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const renderedRecipeView = document.getElementById("renderedRecipeView");
+
+  if (renderedRecipeView) {
+    renderedRecipeView.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement;
+      if (target.tagName === "LI" || target.tagName === "P") {
+        target.classList.toggle("strikethrough");
+      } else if (
+        target.tagName === "SPAN" &&
+        (target.classList.contains("quantity") ||
+          target.classList.contains("ingredient"))
+      ) {
+        const listItem = target.closest("li");
+        if (listItem) {
+          listItem.classList.toggle("strikethrough");
+        }
+      }
+    });
+  }
+});

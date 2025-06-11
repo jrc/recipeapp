@@ -1,4 +1,3 @@
 - Convert to metric
-- Tap sentences to strikeout
 - Implement timers
 - Scale all quantities
