@@ -37,7 +37,16 @@ function createQuantityRegex(): RegExp {
 
 const QUANTITY_REGEX = createQuantityRegex();
 
-export function annotateQuantities(line: string): string {
+/**
+ * Matches quantities like "2 cups", "1.5 tsp" and renders them as HTML links.
+ *
+ * @param line Plain text
+ * @returns HTML string with quantities wrapped in <a href="quantity:UNIT=VALUE">...</a>
+ * @example
+ * renderQuantities("Add 2 cups flour")
+ * // Returns: 'Add <a href="quantity:US_CUP=2">2 cups</a> flour'
+ */
+export function renderQuantities(line: string): string {
   return line.replace(QUANTITY_REGEX, (match, quantity, unit) => {
     const standardUnit = UNIT_LOOKUP.get(unit.toLowerCase());
     const value = parseFloat(quantity);

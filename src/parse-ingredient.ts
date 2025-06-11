@@ -10,7 +10,7 @@ let ingredientPatterns: RegExp[] = [];
  * Initializes the parser with ingredient patterns. Must be called on startup.
  * @param ingredientsText The raw text content from ingredients.txt.
  */
-export function initialize(ingredientsText: string) {
+export function loadIngredientDatabase(ingredientsText: string) {
   ingredientPatterns = createIngredientRegexes(ingredientsText);
 }
 

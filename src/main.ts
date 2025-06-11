@@ -72,7 +72,7 @@ async function initializeApp() {
       throw new Error("Failed to load ingredients.txt");
     }
     const ingredientsText = await response.text();
-    parseIngredient.initialize(ingredientsText);
+    parseIngredient.loadIngredientDatabase(ingredientsText);
 
     // Set up all UI event listeners and pass our callback
     ui.initializeUI(handleTabSwitch);

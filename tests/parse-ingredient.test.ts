@@ -1,7 +1,7 @@
 import {
   createRegExpFromIngredientPattern,
   emphasizeIngredients,
-  initialize,
+  loadIngredientDatabase,
 } from "../src/parse-ingredient";
 
 // Test createRegExpFromIngredientPattern function
@@ -57,7 +57,7 @@ function testHighlightIngredients() {
 
   // Initialize with test ingredients
   const testIngredients = "gorgonzola [cheese]\nalmond~\nred pepper flakes";
-  initialize(testIngredients);
+  loadIngredientDatabase(testIngredients);
 
   // Test basic highlighting
   const result1 = emphasizeIngredients("I like gorgonzola.");
