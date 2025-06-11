@@ -4,8 +4,6 @@ import {
 } from "../src/parse-duration";
 
 function testAnnotateDurations() {
-  console.log("Testing annotateDurationsAsHTML...");
-
   // Test basic units
   let result = annotateDurationsAsHTML("Cook for about 5 minutes.");
   console.assert(
@@ -169,13 +167,9 @@ function testAnnotateDurations() {
     result === "secondary issues",
     "Should not match 'sec' in 'secondary'",
   );
-
-  console.log("✓ annotateDurationsAsHTML tests passed");
 }
 
 function testExtractDurations() {
-  console.log("Testing extractDurations...");
-
   let result = extractDurations("Cook for 5 minutes, then rest 2 hours");
   console.assert(
     result.length === 2 &&
@@ -205,13 +199,9 @@ function testExtractDurations() {
     result.length === 1 && result[0].seconds === 90,
     "Should extract decimal durations correctly",
   );
-
-  console.log("✓ extractDurations tests passed");
 }
 
 // function testFormatDuration() {
-//   console.log("Testing formatDuration...");
-
 //   console.assert(
 //     formatDuration(0) === "0 seconds",
 //     "Should format zero seconds"
@@ -285,4 +275,6 @@ export function runParseDurationTests() {
   testAnnotateDurations();
   testExtractDurations();
   // testFormatDuration();
+
+  console.log("parse-duration tests completed.");
 }

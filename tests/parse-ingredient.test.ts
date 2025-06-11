@@ -6,8 +6,6 @@ import {
 
 // Test createRegExpFromIngredientPattern function
 function testCreateRegExpFromIngredientPattern() {
-  console.log("Testing createRegExpFromIngredientPattern...");
-
   // Test basic pattern
   const basicRegex = createRegExpFromIngredientPattern("gorgonzola");
   console.assert(
@@ -47,14 +45,10 @@ function testCreateRegExpFromIngredientPattern() {
     !multiWordRegex.test("Add red pepper"),
     "Should not match partial phrase",
   );
-
-  console.log("✓ createRegExpFromIngredientPattern tests passed");
 }
 
 // Test emphasizeIngredients function
 function testHighlightIngredients() {
-  console.log("Testing emphasizeIngredients...");
-
   // Initialize with test ingredients
   const testIngredients = "gorgonzola [cheese]\nalmond~\nred pepper flakes";
   loadIngredientDatabase(testIngredients);
@@ -94,11 +88,11 @@ function testHighlightIngredients() {
     result5 === "I like chocolate.",
     "Should not highlight non-ingredients",
   );
-
-  console.log("✓ emphasizeIngredients tests passed");
 }
 
 export function runParseIngredientTests() {
   testCreateRegExpFromIngredientPattern();
   testHighlightIngredients();
+
+  console.log("parse-ingredient tests completed.");
 }

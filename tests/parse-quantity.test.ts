@@ -1,8 +1,6 @@
 import { annotateQuantitiesAsHTML } from "../src/parse-quantity";
 
 function testAnnotateQuantities() {
-  console.log("Testing annotateQuantitiesAsHTML (convertToMetric=false)...");
-
   // Test basic units (convertToMetric=false)
   let result = annotateQuantitiesAsHTML("2 cups", false);
   console.assert(
@@ -157,15 +155,9 @@ function testAnnotateQuantities() {
     result === "some words",
     "Should return original string if not match (convertToMetric=false)",
   );
-
-  console.log(
-    "✓ annotateQuantitiesAsHTML (convertToMetric=false) tests passed",
-  );
 }
 
 function testAnnotateQuantitiesWithMetricConversion() {
-  console.log("Testing annotateQuantitiesAsHTML (convertToMetric=true)...");
-
   // Test basic units (convertToMetric=true)
   let result = annotateQuantitiesAsHTML("2 cups", true);
   console.assert(
@@ -320,11 +312,11 @@ function testAnnotateQuantitiesWithMetricConversion() {
     result === "some words",
     "Should return original string if not match (convertToMetric=true)",
   );
-
-  console.log("✓ annotateQuantitiesAsHTML (convertToMetric=true) tests passed");
 }
 
 export function runParseQuantityTests() {
   testAnnotateQuantities();
   testAnnotateQuantitiesWithMetricConversion();
+
+  console.log("parse-quantity tests completed.");
 }

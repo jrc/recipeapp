@@ -5,8 +5,6 @@ import {
 } from "../src/parse-fraction";
 
 function testParseFraction() {
-  console.log("Testing parseFraction...");
-
   // Test basic decimal numbers
   console.assert(parseFraction("1") === 1.0, "Should parse integer 1");
   console.assert(parseFraction("1.5") === 1.5, "Should parse decimal 1.5");
@@ -113,13 +111,9 @@ function testParseFraction() {
     Math.abs(largeResult - 0.14084505885340207) < 0.0001,
     "Should calculate large fractions correctly",
   );
-
-  console.log("✓ parseFraction basic tests passed");
 }
 
 function testParseFractionErrorCases() {
-  console.log("Testing parseFraction error cases...");
-
   const errorCases = [
     "",
     "   ",
@@ -147,13 +141,9 @@ function testParseFractionErrorCases() {
       );
     }
   }
-
-  console.log("✓ parseFraction error handling tests passed");
 }
 
 function testCreateNumberPattern() {
-  console.log("Testing createNumberPattern...");
-
   const pattern = createNumberPattern();
 
   // Test valid cases
@@ -209,13 +199,9 @@ function testCreateNumberPattern() {
     const matches = testCase.match(new RegExp(`^${pattern.source}$`));
     console.assert(matches === null, `Pattern should not match: "${testCase}"`);
   }
-
-  console.log("✓ createNumberPattern tests passed");
 }
 
 function testPatternInContext() {
-  console.log("Testing pattern matching in context...");
-
   const pattern = createNumberPattern();
 
   const testCases = [
@@ -242,13 +228,9 @@ function testPatternInContext() {
       `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(results)} for: "${text}"`,
     );
   }
-
-  console.log("✓ Pattern in context tests passed");
 }
 
 function testNormalizeNumbers() {
-  console.log("Testing normalizeNumbers...");
-
   // Test basic normalization
   let result = normalizeNumbers("Mix 1½ cups");
   console.assert(result === "Mix 1.5 cups", "Should normalize 1½ to 1.5");
@@ -275,8 +257,6 @@ function testNormalizeNumbers() {
     result === "Add some flour",
     "Should leave non-numbers unchanged",
   );
-
-  console.log("✓ normalizeNumbers tests passed");
 }
 
 export function runParseFractionTests() {
@@ -285,4 +265,6 @@ export function runParseFractionTests() {
   testCreateNumberPattern();
   testPatternInContext();
   testNormalizeNumbers();
+
+  console.log("parse-fraction tests completed.");
 }
