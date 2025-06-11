@@ -1,7 +1,6 @@
 import { roundSatisfying } from "../src/round-satisfying";
 
 function testRoundSatisfyingBasic(): void {
-  // Basic examples - corrected to match actual Python behavior
   let result = roundSatisfying(1.23, 0.05);
   console.assert(
     Math.abs(result - 1.25) < 1e-10, // Account for floating point precision

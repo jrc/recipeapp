@@ -1,5 +1,11 @@
 import { parseFraction, createNumberPattern } from "./parse-fraction.js";
-import { UNIT_DEFINITIONS, UnitDefinition } from "./units.js";
+import { roundSatisfying } from "./round-satisfying";
+import {
+  UNIT_DEFINITIONS,
+  UnitDefinition,
+  convertMeasurement,
+  getOptimalUnit,
+} from "./units.js";
 
 // Build lookup map from unit variation to standard name
 const UNIT_LOOKUP = new Map<string, string>();
@@ -34,17 +40,21 @@ const QUANTITY_REGEX = createQuantityRegex();
  * Handles fractions, mixed numbers, unicode fractions, and decimals.
  *
  * @param line Plain text
- * @param convertToMetric - if true, US units will be converted to metric
+ * @param shouldConvertToMetric - if true, US units will be converted to metric with optimal unit selection
+ * @param shouldRoundSatisfying - if true, converted values will be rounded to satisfying numbers (default: true)
  * @returns HTML string with quantities wrapped in <span class="quantity">...</span>
  * @example
  * annotateQuantitiesAsHTML("Add 2 cups flour")
  * // Returns: 'Add <span class="quantity" title="US-CUP=2" data-value="quantity:US-CUP=2">2 cups</span> flour'
- * annotateQuantitiesAsHTML("Mix 1/2 cup milk")
- * // Returns: 'Mix <span class="quantity" title="US-CUP=0.5" data-value="quantity:US-CUP=0.5">1/2 cup</span> milk'
+ * annotateQuantitiesAsHTML("Mix 1/2 cup milk", true)
+ * // Returns: 'Mix <span class="quantity" title="METRIC-ML=118" data-value="quantity:METRIC-ML=118">1/2 cup</span> milk'
+ * annotateQuantitiesAsHTML("Mix 1/2 cup milk", true, false)
+ * // Returns: 'Mix <span class="quantity" title="METRIC-ML=118.295" data-value="quantity:METRIC-ML=118.295">1/2 cup</span> milk'
  */
 export function annotateQuantitiesAsHTML(
   line: string,
-  convertToMetric: boolean = false,
+  shouldConvertToMetric: boolean = false,
+  shouldRoundSatisfying: boolean = true,
 ): string {
   return line.replace(QUANTITY_REGEX, (match, numberPart, unit) => {
     const standardUnit = UNIT_LOOKUP.get(unit.toLowerCase());
@@ -63,7 +73,7 @@ export function annotateQuantitiesAsHTML(
       let convertedValue = value;
       let dataValue = `quantity:${displayUnit}=${value}`;
 
-      if (convertToMetric) {
+      if (shouldConvertToMetric) {
         const currentUnit = UNIT_DEFINITIONS.find(
           (unit: UnitDefinition) => unit.standardName === standardUnit,
         );
@@ -73,19 +83,61 @@ export function annotateQuantitiesAsHTML(
           if (standardUnit.startsWith("METRIC_")) {
             // Already metric, no conversion needed
           }
-          // Convert volume units to metric liters
-          else if (currentUnit.to_l) {
-            const valueInLiters = value * currentUnit.to_l;
-            displayUnit = "METRIC-L";
-            convertedValue = parseFloat(valueInLiters.toFixed(7)); // Preserve up to 7 decimal places
-            dataValue = `quantity:${displayUnit}=${convertedValue}`;
-          }
-          // Convert mass units to metric kilograms
-          else if (currentUnit.to_kg) {
-            const valueInKilograms = value * currentUnit.to_kg;
-            displayUnit = "METRIC-KG";
-            convertedValue = parseFloat(valueInKilograms.toFixed(7)); // Preserve up to 7 decimal places
-            dataValue = `quantity:${displayUnit}=${convertedValue}`;
+          // Convert to metric system
+          else {
+            try {
+              // First convert to base metric unit
+              let targetUnit: string;
+              if (currentUnit.to_l) {
+                targetUnit = "METRIC_L"; // Start with liters
+              } else if (currentUnit.to_kg) {
+                targetUnit = "METRIC_KG"; // Start with kilograms
+              } else {
+                // No conversion available
+                return match;
+              }
+
+              // Convert to metric
+              const [metricValue, metricUnit] = convertMeasurement(
+                value,
+                standardUnit,
+                targetUnit,
+              );
+
+              // Find optimal unit for the converted value
+              const optimalUnit = getOptimalUnit(
+                metricValue,
+                metricUnit,
+                "METRIC",
+              );
+
+              // Convert to optimal unit if different
+              if (optimalUnit !== metricUnit) {
+                const [finalValue, finalUnit] = convertMeasurement(
+                  metricValue,
+                  metricUnit,
+                  optimalUnit,
+                );
+                if (shouldRoundSatisfying) {
+                  convertedValue = roundSatisfying(finalValue);
+                } else {
+                  convertedValue = parseFloat(finalValue.toFixed(7));
+                }
+                displayUnit = finalUnit.replace(/_/g, "-");
+              } else {
+                if (shouldRoundSatisfying) {
+                  convertedValue = roundSatisfying(metricValue);
+                } else {
+                  convertedValue = parseFloat(metricValue.toFixed(7));
+                }
+                displayUnit = metricUnit.replace(/_/g, "-");
+              }
+
+              dataValue = `quantity:${displayUnit}=${convertedValue}`;
+            } catch (error) {
+              // If conversion fails, return original match
+              return match;
+            }
           }
         }
       }
