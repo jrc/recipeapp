@@ -56,3 +56,7 @@ main {
     height: auto; /* Maintain aspect ratio */
     max-height: 160px;
 }
+
+.quantity {
+    color: blue;
+}

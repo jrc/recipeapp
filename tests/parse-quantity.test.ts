@@ -1,78 +1,110 @@
-import { renderQuantities } from "../src/parse-quantity";
+import { annotateQuantitiesAsHTML } from "../src/parse-quantity";
 
 function testAnnotateQuantities() {
-  console.log("Testing renderQuantities...");
+  console.log("Testing annotateQuantitiesAsHTML...");
 
   // Test basic units
-  let result = renderQuantities("2 cups");
+  let result = annotateQuantitiesAsHTML("2 cups");
   console.assert(
-    result === '<a href="quantity:US_CUP=2">2 cups</a>',
+    result ===
+      '<span class="quantity" title="US-CUP=2" data-value="quantity:US-CUP=2">2 cups</span>',
     "Should annotate cups correctly",
   );
 
-  result = renderQuantities("1 tsp");
+  result = annotateQuantitiesAsHTML("1 tsp");
   console.assert(
-    result === '<a href="quantity:US_TSP=1">1 tsp</a>',
+    result ===
+      '<span class="quantity" title="US-TSP=1" data-value="quantity:US-TSP=1">1 tsp</span>',
     "Should annotate tsp correctly",
   );
 
-  result = renderQuantities("3 tbsp");
+  result = annotateQuantitiesAsHTML("3 tbsp");
   console.assert(
-    result === '<a href="quantity:US_TBSP=3">3 tbsp</a>',
+    result ===
+      '<span class="quantity" title="US-TBSP=3" data-value="quantity:US-TBSP=3">3 tbsp</span>',
     "Should annotate tbsp correctly",
   );
 
-  result = renderQuantities("250 ml");
+  result = annotateQuantitiesAsHTML("250 ml");
   console.assert(
-    result === '<a href="quantity:METRIC_ML=250">250 ml</a>',
+    result ===
+      '<span class="quantity" title="METRIC-ML=250" data-value="quantity:METRIC-ML=250">250 ml</span>',
     "Should annotate ml correctly",
   );
 
-  result = renderQuantities("1.5 l");
+  result = annotateQuantitiesAsHTML("1.5 l");
   console.assert(
-    result === '<a href="quantity:METRIC_L=1.5">1.5 l</a>',
+    result ===
+      '<span class="quantity" title="METRIC-L=1.5" data-value="quantity:METRIC-L=1.5">1.5 l</span>',
     "Should annotate l correctly",
   );
 
-  result = renderQuantities("100 g");
+  result = annotateQuantitiesAsHTML("100 g");
   console.assert(
-    result === '<a href="quantity:METRIC_G=100">100 g</a>',
+    result ===
+      '<span class="quantity" title="METRIC-G=100" data-value="quantity:METRIC-G=100">100 g</span>',
     "Should annotate g correctly",
   );
 
-  result = renderQuantities("0.5 kg");
+  result = annotateQuantitiesAsHTML("0.5 kg");
   console.assert(
-    result === '<a href="quantity:METRIC_KG=0.5">0.5 kg</a>',
+    result ===
+      '<span class="quantity" title="METRIC-KG=0.5" data-value="quantity:METRIC-KG=0.5">0.5 kg</span>',
     "Should annotate kg correctly",
   );
 
-  result = renderQuantities("8 oz");
+  result = annotateQuantitiesAsHTML("8 oz");
   console.assert(
-    result === '<a href="quantity:US_OZ=8">8 oz</a>',
+    result ===
+      '<span class="quantity" title="US-OZ=8" data-value="quantity:US-OZ=8">8 oz</span>',
     "Should annotate oz correctly",
   );
 
-  result = renderQuantities("2 lb");
+  result = annotateQuantitiesAsHTML("2 lb");
   console.assert(
-    result === '<a href="quantity:US_LB=2">2 lb</a>',
+    result ===
+      '<span class="quantity" title="US-LB=2" data-value="quantity:US-LB=2">2 lb</span>',
     "Should annotate lb correctly",
   );
 
   // Test plural units
-  result = renderQuantities("2 cups flour");
+  result = annotateQuantitiesAsHTML("2 cups flour");
   console.assert(
-    result === '<a href="quantity:US_CUP=2">2 cups</a> flour',
+    result ===
+      '<span class="quantity" title="US-CUP=2" data-value="quantity:US-CUP=2">2 cups</span> flour',
     "Should annotate plural cups correctly",
   );
 
+  // Test fractions
+  result = annotateQuantitiesAsHTML("1/2 cup milk");
+  console.assert(
+    result ===
+      '<span class="quantity" title="US-CUP=0.5" data-value="quantity:US-CUP=0.5">1/2 cup</span> milk',
+    "Should annotate fractions correctly",
+  );
+
+  result = annotateQuantitiesAsHTML("1½ tsp salt");
+  console.assert(
+    result ===
+      '<span class="quantity" title="US-TSP=1.5" data-value="quantity:US-TSP=1.5">1½ tsp</span> salt',
+    "Should annotate unicode fractions correctly",
+  );
+
+  result = annotateQuantitiesAsHTML("2 1/4 cups sugar");
+  console.assert(
+    result ===
+      '<span class="quantity" title="US-CUP=2.25" data-value="quantity:US-CUP=2.25">2 1/4 cups</span> sugar',
+    "Should annotate mixed numbers correctly",
+  );
+
   // Test no match
-  result = renderQuantities("some words");
+  result = annotateQuantitiesAsHTML("some words");
   console.assert(
     result === "some words",
     "Should return original string if not match",
   );
 
-  console.log("✓ renderQuantities tests passed");
+  console.log("✓ annotateQuantitiesAsHTML tests passed");
 }
 
 export function runParseQuantityTests() {

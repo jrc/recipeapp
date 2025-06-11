@@ -1,3 +1,5 @@
+import { parseFraction, createNumberPattern } from './parse-fraction.js';
+
 interface UnitDefinition {
   standardName: string;
   variations: string[];
@@ -31,31 +33,46 @@ function createQuantityRegex(): RegExp {
     .sort((a, b) => b.length - a.length) // Longer first to avoid partial matches
     .map((variation) => variation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")); // Escape special regex chars
 
-  const pattern = `(\\d+(?:\\.\\d+)?)\\s*(${allVariations.join("|")})`;
+  // Use the number pattern from parse-fraction to handle fractions, mixed numbers, etc.
+  const numberPatternSource = createNumberPattern().source;
+  const pattern = `(${numberPatternSource})\\s*(${allVariations.join("|")})`;
   return new RegExp(pattern, "gi");
 }
 
 const QUANTITY_REGEX = createQuantityRegex();
 
 /**
- * Matches quantities like "2 cups", "1.5 tsp" and renders them as HTML links.
+ * Matches quantities like "2 cups", "1.5 tsp", "1/2 cup" and renders them as HTML spans.
+ * Handles fractions, mixed numbers, unicode fractions, and decimals.
  *
  * @param line Plain text
- * @returns HTML string with quantities wrapped in <a href="quantity:UNIT=VALUE">...</a>
+ * @returns HTML string with quantities wrapped in <span class="quantity">...</span>
  * @example
- * renderQuantities("Add 2 cups flour")
- * // Returns: 'Add <a href="quantity:US_CUP=2">2 cups</a> flour'
+ * annotateQuantitiesAsHTML("Add 2 cups flour")
+ * // Returns: 'Add <span class="quantity" title="US-CUP=2" data-value="quantity:US-CUP=2">2 cups</span> flour'
+ * annotateQuantitiesAsHTML("Mix 1/2 cup milk")
+ * // Returns: 'Mix <span class="quantity" title="US-CUP=0.5" data-value="quantity:US-CUP=0.5">1/2 cup</span> milk'
  */
-export function renderQuantities(line: string): string {
-  return line.replace(QUANTITY_REGEX, (match, quantity, unit) => {
+export function annotateQuantitiesAsHTML(line: string): string {
+  return line.replace(QUANTITY_REGEX, (match, numberPart, unit) => {
     const standardUnit = UNIT_LOOKUP.get(unit.toLowerCase());
-    const value = parseFloat(quantity);
-
+    
     if (!standardUnit) {
       // Fallback - should not happen if our data is consistent
       return match;
     }
 
-    return `<a href="quantity:${standardUnit}=${value}">${match}</a>`;
+    try {
+      // Use parseFraction to handle all number formats (fractions, mixed numbers, decimals, etc.)
+      const value = parseFraction(numberPart.trim());
+      
+      // Convert standardName format: US_CUP -> US-CUP
+      const displayUnit = standardUnit.replace(/_/g, '-');
+      
+      return `<span class="quantity" title="${displayUnit}=${value}" data-value="quantity:${displayUnit}=${value}">${match}</span>`;
+    } catch {
+      // If parsing fails, return original match
+      return match;
+    }
   });
 }
