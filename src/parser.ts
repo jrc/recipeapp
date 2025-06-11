@@ -105,23 +105,24 @@ export function convertJsonLdToRecipeMarkdown(recipeJson: any): string {
 export function markdownToHtml(markdown: string): string {
   let html = markdown;
 
+  // 1. Process inline-level styles.
+  html = html.replace(/(^|\W)\*\*(.*?)\*\*(\W|$)/g, "$1<strong>$2</strong>$3");
+  html = html.replace(/(^|\W)_(.*?)_(\W|$)/g, "$1<em>$2</em>$3");
+
+  // 2. Process block-level elements.
   html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
   html = html.replace(/^---\s*$/gm, "<hr>");
   html = html.replace(/^>\s*(.*)$/gm, "<blockquote>$1</blockquote>");
   html = html.replace(/^##\s*(.*)$/gm, "<h2>$1</h2>");
   html = html.replace(/^#\s*(.*)$/gm, "<h1>$1</h1>");
-  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/_(.*?)_/g, "<em>$1</em>");
 
-  // --- List Processing ---
-  // Process unordered lists (ingredients) - mark them with a special class
+  // 3. Process lists and apply annotations.
   html = html.replace(/^- (.*)$/gm, (_match, content: string) => {
     const annotatedContent = emphasizeIngredients(
       annotateDurationsAsHTML(annotateQuantitiesAsHTML(content)),
     );
     return `<li class="unordered">${annotatedContent}</li>`;
   });
-  // Process ordered lists (instructions) - mark them with a special class
   html = html.replace(/^\d+\.\s*(.*)$/gm, (_match, content: string) => {
     const annotatedContent = emphasizeIngredients(
       annotateDurationsAsHTML(annotateQuantitiesAsHTML(content)),
@@ -142,6 +143,7 @@ export function markdownToHtml(markdown: string): string {
     return `<ol>\n${cleanMatch}</ol>`;
   });
 
+  // 4. Handle paragraphs.
   html = html.replace(/\n{2,}/g, "\n\n");
   html = html
     .split("\n\n")

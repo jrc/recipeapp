@@ -1,4 +1,5 @@
 body {
+    font-family: system-ui;
     line-height: 1.6;
     font-size: 112.5%;
 }
@@ -64,15 +65,17 @@ main {
 
 #renderedRecipeView {
     color: #4a4a4a;
-}
-
-.ingredient {
-    color: #000000;
-    font-weight: bold;
+    font-weight: 300;
 }
 
 .quantity {
     color: #000000;
+    font-weight: 600;
+}
+
+.ingredient {
+    color: #000000;
+    font-weight: 800;
 }
 
 .duration {

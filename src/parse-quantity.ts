@@ -1,4 +1,4 @@
-import { parseFraction, createNumberPattern } from './parse-fraction.js';
+import { parseFraction, createNumberPattern } from "./parse-fraction.js";
 
 interface UnitDefinition {
   standardName: string;
@@ -9,8 +9,14 @@ interface UnitDefinition {
 const UNIT_DEFINITIONS: UnitDefinition[] = [
   { standardName: "US_CUP", variations: ["cups", "cup"] },
   { standardName: "US_TSP", variations: ["teaspoons", "teaspoon", "tsp"] },
-  { standardName: "US_TBSP", variations: ["tablespoons", "tablespoon", "tbsp"] },
-  { standardName: "METRIC_ML", variations: ["milliliters", "milliliter", "ml"] },
+  {
+    standardName: "US_TBSP",
+    variations: ["tablespoons", "tablespoon", "tbsp"],
+  },
+  {
+    standardName: "METRIC_ML",
+    variations: ["milliliters", "milliliter", "ml"],
+  },
   { standardName: "METRIC_L", variations: ["liters", "liter", "l"] },
   { standardName: "METRIC_G", variations: ["grams", "gram", "g"] },
   { standardName: "METRIC_KG", variations: ["kilograms", "kilogram", "kg"] },
@@ -36,7 +42,7 @@ function createQuantityRegex(): RegExp {
   // Use the number pattern from parse-fraction to handle fractions, mixed numbers, etc.
   const numberPatternSource = createNumberPattern().source;
   // Add word boundaries to prevent false matches (e.g., "8 g" in "8 garlic")
-  const pattern = `(${numberPatternSource})\\s*(${allVariations.join("|")})\\b`;
+  const pattern = `(${numberPatternSource})\\s*\\b(${allVariations.join("|")})\\b`;
   return new RegExp(pattern, "gi");
 }
 
@@ -57,7 +63,7 @@ const QUANTITY_REGEX = createQuantityRegex();
 export function annotateQuantitiesAsHTML(line: string): string {
   return line.replace(QUANTITY_REGEX, (match, numberPart, unit) => {
     const standardUnit = UNIT_LOOKUP.get(unit.toLowerCase());
-    
+
     if (!standardUnit) {
       // Fallback - should not happen if our data is consistent
       return match;
@@ -66,10 +72,10 @@ export function annotateQuantitiesAsHTML(line: string): string {
     try {
       // Use parseFraction to handle all number formats (fractions, mixed numbers, decimals, etc.)
       const value = parseFraction(numberPart.trim());
-      
+
       // Convert standardName format: US_CUP -> US-CUP
-      const displayUnit = standardUnit.replace(/_/g, '-');
-      
+      const displayUnit = standardUnit.replace(/_/g, "-");
+
       return `<span class="quantity" title="${displayUnit}=${value}" data-value="quantity:${displayUnit}=${value}">${match}</span>`;
     } catch {
       // If parsing fails, return original match
