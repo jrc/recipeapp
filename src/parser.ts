@@ -4,6 +4,7 @@
  */
 
 import { emphasizeIngredients } from "./parse-ingredient";
+import { annotateQuantities } from "./parse-quantity";
 
 export function formatIsoDuration(isoDuration: string): string {
   const regex = /PT(?:(\d+)H)?(?:(\d+)M)?/;
@@ -114,11 +115,11 @@ export function markdownToHtml(markdown: string): string {
   // --- List Processing ---
   // Process unordered lists (ingredients) - mark them with a special class
   html = html.replace(/^- (.*)$/gm, (_match, content: string) => {
-    return `<li class="unordered">${emphasizeIngredients(content)}</li>`;
+    return `<li class="unordered">${emphasizeIngredients(annotateQuantities(content))}</li>`;
   });
   // Process ordered lists (instructions) - mark them with a special class
   html = html.replace(/^\d+\.\s*(.*)$/gm, (_match, content: string) => {
-    return `<li class="ordered">${emphasizeIngredients(content)}</li>`;
+    return `<li class="ordered">${emphasizeIngredients(annotateQuantities(content))}</li>`;
   });
 
   // Wrap consecutive list items in appropriate list tags

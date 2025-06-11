@@ -13,7 +13,7 @@ const UNIT_DEFINITIONS: UnitDefinition[] = [
   { standardName: "METRIC_G", variations: ["grams", "g"] },
   { standardName: "METRIC_KG", variations: ["kilograms", "kg"] },
   { standardName: "US_OZ", variations: ["ounces", "oz"] },
-  { standardName: "US_LB", variations: ["pounds", "lb"] }
+  { standardName: "US_LB", variations: ["pounds", "lb"] },
 ];
 
 // Build lookup map from unit variation to standard name
@@ -27,13 +27,12 @@ for (const unit of UNIT_DEFINITIONS) {
 // Generate regex pattern from unit definitions
 // Sort by length descending to ensure longer matches take precedence
 function createQuantityRegex(): RegExp {
-  const allVariations = UNIT_DEFINITIONS
-    .flatMap(unit => unit.variations)
+  const allVariations = UNIT_DEFINITIONS.flatMap((unit) => unit.variations)
     .sort((a, b) => b.length - a.length) // Longer first to avoid partial matches
-    .map(variation => variation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')); // Escape special regex chars
-  
-  const pattern = `(\\d+(?:\\.\\d+)?)\\s*(${allVariations.join('|')})`;
-  return new RegExp(pattern, 'gi');
+    .map((variation) => variation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")); // Escape special regex chars
+
+  const pattern = `(\\d+(?:\\.\\d+)?)\\s*(${allVariations.join("|")})`;
+  return new RegExp(pattern, "gi");
 }
 
 const QUANTITY_REGEX = createQuantityRegex();
@@ -42,12 +41,12 @@ export function annotateQuantities(line: string): string {
   return line.replace(QUANTITY_REGEX, (match, quantity, unit) => {
     const standardUnit = UNIT_LOOKUP.get(unit.toLowerCase());
     const value = parseFloat(quantity);
-    
+
     if (!standardUnit) {
       // Fallback - should not happen if our data is consistent
       return match;
     }
-    
-    return `[${match}](quantity:${standardUnit}=${value})`;
+
+    return `<a href="quantity:${standardUnit}=${value}">${match}</a>`;
   });
 }
