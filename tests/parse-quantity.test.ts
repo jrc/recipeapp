@@ -97,6 +97,60 @@ function testAnnotateQuantities() {
     "Should annotate mixed numbers correctly",
   );
 
+  // Test singular forms
+  result = annotateQuantitiesAsHTML("1 teaspoon vanilla");
+  console.assert(
+    result ===
+      '<span class="quantity" title="US-TSP=1" data-value="quantity:US-TSP=1">1 teaspoon</span> vanilla',
+    "Should annotate singular teaspoon correctly",
+  );
+
+  result = annotateQuantitiesAsHTML("1 tablespoon oil");
+  console.assert(
+    result ===
+      '<span class="quantity" title="US-TBSP=1" data-value="quantity:US-TBSP=1">1 tablespoon</span> oil',
+    "Should annotate singular tablespoon correctly",
+  );
+
+  result = annotateQuantitiesAsHTML("1 gram nutmeg");
+  console.assert(
+    result ===
+      '<span class="quantity" title="METRIC-G=1" data-value="quantity:METRIC-G=1">1 gram</span> nutmeg',
+    "Should annotate singular gram correctly",
+  );
+
+  result = annotateQuantitiesAsHTML("1 ounce chocolate");
+  console.assert(
+    result ===
+      '<span class="quantity" title="US-OZ=1" data-value="quantity:US-OZ=1">1 ounce</span> chocolate',
+    "Should annotate singular ounce correctly",
+  );
+
+  // Test word boundary protection (should NOT match)
+  result = annotateQuantitiesAsHTML("1 lemon");
+  console.assert(
+    result === "1 lemon",
+    "Should not match 'l' in 'lemon'",
+  );
+
+  result = annotateQuantitiesAsHTML("8 garlic cloves");
+  console.assert(
+    result === "8 garlic cloves",
+    "Should not match 'g' in 'garlic'",
+  );
+
+  result = annotateQuantitiesAsHTML("5 ozonic compounds");
+  console.assert(
+    result === "5 ozonic compounds",
+    "Should not match 'oz' in 'ozonic'",
+  );
+
+  result = annotateQuantitiesAsHTML("put in cupboard");
+  console.assert(
+    result === "put in cupboard",
+    "Should not match 'cup' in 'cupboard'",
+  );
+
   // Test no match
   result = annotateQuantitiesAsHTML("some words");
   console.assert(

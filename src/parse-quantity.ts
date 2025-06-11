@@ -8,14 +8,14 @@ interface UnitDefinition {
 // Centralized unit knowledge - single source of truth
 const UNIT_DEFINITIONS: UnitDefinition[] = [
   { standardName: "US_CUP", variations: ["cups", "cup"] },
-  { standardName: "US_TSP", variations: ["teaspoons", "tsp"] },
-  { standardName: "US_TBSP", variations: ["tablespoons", "tbsp"] },
-  { standardName: "METRIC_ML", variations: ["milliliters", "ml"] },
-  { standardName: "METRIC_L", variations: ["liters", "l"] },
-  { standardName: "METRIC_G", variations: ["grams", "g"] },
-  { standardName: "METRIC_KG", variations: ["kilograms", "kg"] },
-  { standardName: "US_OZ", variations: ["ounces", "oz"] },
-  { standardName: "US_LB", variations: ["pounds", "lb"] },
+  { standardName: "US_TSP", variations: ["teaspoons", "teaspoon", "tsp"] },
+  { standardName: "US_TBSP", variations: ["tablespoons", "tablespoon", "tbsp"] },
+  { standardName: "METRIC_ML", variations: ["milliliters", "milliliter", "ml"] },
+  { standardName: "METRIC_L", variations: ["liters", "liter", "l"] },
+  { standardName: "METRIC_G", variations: ["grams", "gram", "g"] },
+  { standardName: "METRIC_KG", variations: ["kilograms", "kilogram", "kg"] },
+  { standardName: "US_OZ", variations: ["ounces", "ounce", "oz"] },
+  { standardName: "US_LB", variations: ["pounds", "pound", "lb"] },
 ];
 
 // Build lookup map from unit variation to standard name
@@ -35,7 +35,8 @@ function createQuantityRegex(): RegExp {
 
   // Use the number pattern from parse-fraction to handle fractions, mixed numbers, etc.
   const numberPatternSource = createNumberPattern().source;
-  const pattern = `(${numberPatternSource})\\s*(${allVariations.join("|")})`;
+  // Add word boundaries to prevent false matches (e.g., "8 g" in "8 garlic")
+  const pattern = `(${numberPatternSource})\\s*(${allVariations.join("|")})\\b`;
   return new RegExp(pattern, "gi");
 }
 
