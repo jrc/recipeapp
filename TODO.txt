@@ -1,3 +1,2 @@
-- Convert to metric
 - Implement timers
 - Scale all quantities

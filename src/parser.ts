@@ -118,13 +118,13 @@ export function markdownToHtml(markdown: string): string {
   // 3. Process lists and apply annotations.
   html = html.replace(/^- (.*)$/gm, (_match, content: string) => {
     const annotatedContent = emphasizeIngredients(
-      annotateDurationsAsHTML(annotateQuantitiesAsHTML(content)),
+      annotateDurationsAsHTML(annotateQuantitiesAsHTML(content, true)),
     );
     return `<li class="unordered">${annotatedContent}</li>`;
   });
   html = html.replace(/^\d+\.\s*(.*)$/gm, (_match, content: string) => {
     const annotatedContent = emphasizeIngredients(
-      annotateDurationsAsHTML(annotateQuantitiesAsHTML(content)),
+      annotateDurationsAsHTML(annotateQuantitiesAsHTML(content, true)),
     );
     return `<li class="ordered">${annotatedContent}</li>`;
   });
