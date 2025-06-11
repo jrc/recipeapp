@@ -16,7 +16,6 @@
 #    - A `~` after a word indicates it should also match by its plural form.
 #    - Example: `almond~` matches "almond" or "almonds".
 
-[black] pepper
 abalone
 agar
 ají
@@ -55,6 +54,7 @@ bison
 black bean~
 black currant
 black licorice
+black pepper
 blackberry
 blood orange
 blue [cheese]
@@ -361,6 +361,7 @@ nutmeg
 oat
 oatmeal
 octopus
+oil
 okra
 olive
 olive oil
@@ -390,6 +391,7 @@ peanut butter
 pear
 peas
 pecan
+pepper
 peppermint
 persimmon
 pickle

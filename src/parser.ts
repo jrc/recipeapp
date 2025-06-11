@@ -3,10 +3,11 @@
  * Contains all functions for data transformation (JSON-LD -> Markdown, Markdown -> HTML).
  */
 
+import { annotateDurationsAsHTML } from "./parse-duration";
 import { emphasizeIngredients } from "./parse-ingredient";
 import { annotateQuantitiesAsHTML } from "./parse-quantity";
 
-export function formatIsoDuration(isoDuration: string): string {
+function formatIsoDuration(isoDuration: string): string {
   const regex = /PT(?:(\d+)H)?(?:(\d+)M)?/;
   const matches = isoDuration.match(regex);
   if (!matches) return isoDuration;
@@ -116,14 +117,14 @@ export function markdownToHtml(markdown: string): string {
   // Process unordered lists (ingredients) - mark them with a special class
   html = html.replace(/^- (.*)$/gm, (_match, content: string) => {
     const annotatedContent = emphasizeIngredients(
-      annotateQuantitiesAsHTML(content),
+      annotateDurationsAsHTML(annotateQuantitiesAsHTML(content)),
     );
     return `<li class="unordered">${annotatedContent}</li>`;
   });
   // Process ordered lists (instructions) - mark them with a special class
   html = html.replace(/^\d+\.\s*(.*)$/gm, (_match, content: string) => {
     const annotatedContent = emphasizeIngredients(
-      annotateQuantitiesAsHTML(content),
+      annotateDurationsAsHTML(annotateQuantitiesAsHTML(content)),
     );
     return `<li class="ordered">${annotatedContent}</li>`;
   });

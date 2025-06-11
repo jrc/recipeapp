@@ -62,28 +62,29 @@ function testHighlightIngredients() {
   // Test basic highlighting
   const result1 = emphasizeIngredients("I like gorgonzola.");
   console.assert(
-    result1 === "I like <strong>gorgonzola</strong>.",
+    result1 === 'I like <span class="ingredient">gorgonzola</span>.',
     "Should highlight basic ingredient",
   );
 
   // Test optional word highlighting
   const result2 = emphasizeIngredients("I like gorgonzola cheese.");
   console.assert(
-    result2 === "I like <strong>gorgonzola cheese</strong>.",
+    result2 === 'I like <span class="ingredient">gorgonzola cheese</span>.',
     "Should highlight with optional word",
   );
 
   // Test plural highlighting
   const result3 = emphasizeIngredients("Use 100g almonds");
   console.assert(
-    result3 === "Use 100g <strong>almonds</strong>",
+    result3 === 'Use 100g <span class="ingredient">almonds</span>',
     "Should highlight plural form",
   );
 
   // Test multi-word highlighting
   const result4 = emphasizeIngredients("A pinch of red pepper flakes is nice.");
   console.assert(
-    result4 === "A pinch of <strong>red pepper flakes</strong> is nice.",
+    result4 ===
+      'A pinch of <span class="ingredient">red pepper flakes</span> is nice.',
     "Should highlight multi-word ingredient",
   );
 

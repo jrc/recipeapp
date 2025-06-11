@@ -58,7 +58,7 @@ export function emphasizeIngredients(line: string): string {
     const globalPattern = new RegExp(pattern.source, "ig");
     highlightedLine = highlightedLine.replace(
       globalPattern,
-      (match) => `<strong>${match}</strong>`,
+      (match) => `<span class="ingredient">${match}</span>`,
     );
   }
   return highlightedLine;
