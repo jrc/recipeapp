@@ -7,12 +7,21 @@ interface UnitDefinition {
 
 // Centralized unit knowledge - single source of truth
 const UNIT_DEFINITIONS: UnitDefinition[] = [
-  { standardName: "US_CUP", variations: ["cups", "cup"] },
-  { standardName: "US_TSP", variations: ["teaspoons", "teaspoon", "tsp"] },
+  { standardName: "TSP", variations: ["teaspoons", "teaspoon", "tsp"] },
   {
-    standardName: "US_TBSP",
+    standardName: "TBSP",
     variations: ["tablespoons", "tablespoon", "tbsp"],
   },
+  {
+    standardName: "US_FLOZ",
+    variations: ["fluid ounces", "fluid ounce", "fl oz"],
+  },
+  { standardName: "US_CUP", variations: ["cups", "cup"] },
+  { standardName: "US_PINT", variations: ["pints", "pint", "pt"] },
+  { standardName: "US_QT", variations: ["quarts", "quart", "qt"] },
+  { standardName: "US_GAL", variations: ["gallons", "gallon", "gal"] },
+  { standardName: "US_OZ", variations: ["ounces", "ounce", "oz"] },
+  { standardName: "US_LB", variations: ["pounds", "pound", "lb"] },
   {
     standardName: "METRIC_ML",
     variations: ["milliliters", "milliliter", "ml"],
@@ -20,8 +29,6 @@ const UNIT_DEFINITIONS: UnitDefinition[] = [
   { standardName: "METRIC_L", variations: ["liters", "liter", "l"] },
   { standardName: "METRIC_G", variations: ["grams", "gram", "g"] },
   { standardName: "METRIC_KG", variations: ["kilograms", "kilogram", "kg"] },
-  { standardName: "US_OZ", variations: ["ounces", "ounce", "oz"] },
-  { standardName: "US_LB", variations: ["pounds", "pound", "lb"] },
 ];
 
 // Build lookup map from unit variation to standard name

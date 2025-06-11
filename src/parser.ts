@@ -35,8 +35,7 @@ export function convertJsonLdToRecipeMarkdown(recipeJson: any): string {
     if (imageUrl) markdownParts.push(`![Recipe Image](${imageUrl})\n`);
   }
   if (recipeJson.name) markdownParts.push(`# ${recipeJson.name}\n`);
-  if (recipeJson.description)
-    markdownParts.push(`> ${recipeJson.description}\n`);
+  if (recipeJson.description) markdownParts.push(`${recipeJson.description}\n`);
   if (recipeJson.author) {
     const authorName =
       typeof recipeJson.author === "string"
