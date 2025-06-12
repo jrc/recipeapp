@@ -36,8 +36,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install dependencies
-        run: npm install --save-dev esbuild
+      - name: Install esbuild
+        run: curl -fsSL https://esbuild.github.io/dl/v0.25.5 | sh
       - name: Make
         run: make build
 
