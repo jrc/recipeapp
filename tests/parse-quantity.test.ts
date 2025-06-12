@@ -119,13 +119,13 @@ export function runParseQuantityTests() {
       expected:
         'Take <span class="quantity" title="US_CUP=1" data-value="quantity:US_CUP=1">1 cup</span> <span class="quantity-metric" title="METRIC_ML=235" data-value="quantity:METRIC_ML=235">(235 ml)</span> sugar and <span class="quantity" title="US_LB=0.5" data-value="quantity:US_LB=0.5">1/2 lb</span> <span class="quantity-metric" title="METRIC_G=225" data-value="quantity:METRIC_G=225">(225 g)</span> butter',
     },
-    // {
-    //   description: "Quantity with no space before unit, e.g. 2cups",
-    //   input: "Add 2cups flour",
-    //   convertToMetric: false,
-    //   expected:
-    //     'Add <span class="quantity" title="US_CUP=2" data-value="quantity:US_CUP=2">2cups</span> flour',
-    // },
+    {
+      description: "Quantity with no space before unit, e.g. 2cups",
+      input: "Add 2cups flour",
+      convertToMetric: false,
+      expected:
+        'Add <span class="quantity" title="US_CUP=2" data-value="quantity:US_CUP=2">2cups</span> flour',
+    },
     {
       description: "Unicode fraction ¼ cup, with metric conversion",
       input: "Add ¼ cup sugar", // 0.25 US_CUP = 59.147 mL, rounds to 60ml

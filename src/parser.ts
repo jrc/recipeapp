@@ -116,7 +116,7 @@ export function markdownToHtml(markdown: string): string {
   html = html.replace(/^#\s*(.*)$/gm, "<h1>$1</h1>");
 
   // 3. Process lists and apply annotations.
-  html = html.replace(/^- (.*)$/gm, (_match, content: string) => {
+  html = html.replace(/^[-\*] (.*)$/gm, (_match, content: string) => {
     const annotatedContent = emphasizeIngredients(
       annotateDurationsAsHTML(annotateQuantitiesAsHTML(content, true, true)),
     );

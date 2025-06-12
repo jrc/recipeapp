@@ -49,7 +49,7 @@ function parseDurationToSeconds(durationText: string, unit: string): number {
 
   // Handle ranges: "5-10", "5 - 10", "5 to 10"
   const rangeMatch = durationText.match(
-    /^(\d+(?:\.\d+)?)\s*(?:-|to)\s*(\d+(?:\.\d+)?)$/,
+    /^(\d+(?:\.\d+)?)\s*(?:-|\u2013|to)\s*(\d+(?:\.\d+)?)$/,
   );
   if (rangeMatch) {
     const start = parseFloat(rangeMatch[1]);
@@ -84,7 +84,7 @@ function createDurationRegex(): RegExp {
   // 4. Unit: (units...)
   // 5. Word boundary: \b
   const numberPattern = `\\d+(?:\\.\\d+)?`;
-  const rangePattern = `(?:\\s*(?:-|to)\\s*${numberPattern})?`;
+  const rangePattern = `(?:\\s*(?:-|\u2013|to)\\s*${numberPattern})?`;
   const fullPattern = `(${numberPattern}${rangePattern})\\s+(${allUnits.join("|")})\\b`;
 
   return new RegExp(fullPattern, "gi");

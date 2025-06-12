@@ -29,7 +29,7 @@ function createQuantityRegex(): RegExp {
   const numberPatternSource = createNumberPattern().source;
 
   // Add word boundaries to prevent false matches (e.g., "8 g" in "8 garlic")
-  const pattern = `(${numberPatternSource})\\s*\\b(${allVariations.join("|")})\\b`;
+  const pattern = `(${numberPatternSource})\\s*(${allVariations.join("|")})\\b`;
   return new RegExp(pattern, "gi");
 }
 
@@ -83,10 +83,10 @@ export function annotateQuantitiesAsHTML(
       let finalUnit = originalUnit;
 
       // Determine if rounding should actually be applied
-      const applyRounding = (shouldRoundSatisfyingParam === undefined)
-                              ? shouldConvertToMetric // Default: if converting to metric and not specified, then round.
-                              : shouldRoundSatisfyingParam; // Otherwise, use the explicitly passed value.
-
+      const applyRounding =
+        shouldRoundSatisfyingParam === undefined
+          ? shouldConvertToMetric // Default: if converting to metric and not specified, then round.
+          : shouldRoundSatisfyingParam; // Otherwise, use the explicitly passed value.
 
       if (shouldConvertToMetric) {
         // Skip conversion if already metric
