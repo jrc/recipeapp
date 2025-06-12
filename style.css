@@ -72,6 +72,11 @@ main {
     font-weight: 400;
 }
 
+.quantity-metric {
+    font-family: cursive;
+    font-weight: 700;
+}
+
 .ingredient {
     color: #000000;
     font-weight: 700;

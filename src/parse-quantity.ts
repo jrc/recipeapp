@@ -41,20 +41,22 @@ const QUANTITY_REGEX = createQuantityRegex();
  *
  * @param line Plain text
  * @param shouldConvertToMetric - if true, US units will be converted to metric with optimal unit selection
- * @param shouldRoundSatisfying - if true, converted values will be rounded to satisfying numbers (default: true)
+ * @param shouldRoundSatisfyingParam - if true, converted values will be rounded to satisfying numbers.
+ *                                     If undefined and shouldConvertToMetric is true, defaults to true.
+ *                                     Otherwise defaults to false or the provided value.
  * @returns HTML string with quantities wrapped in <span class="quantity">...</span>
  * @example
  * annotateQuantitiesAsHTML("Add 2 cups flour")
  * // Returns: 'Add <span class="quantity" title="US-CUP=2" data-value="quantity:US-CUP=2">2 cups</span> flour'
  * annotateQuantitiesAsHTML("Mix 1/2 cup milk", true)
- * // Returns: 'Mix <span class="quantity" title="METRIC-ML=118" data-value="quantity:METRIC-ML=118">1/2 cup</span> milk'
+ * // Returns: 'Mix <span class="quantity" title="US_CUP=0.5" data-value="quantity:US_CUP=0.5">1/2 cup</span> milk <span class="quantity-metric" title="METRIC_ML=120" data-value="quantity:METRIC_ML=120">(120 mL)</span>'
  * annotateQuantitiesAsHTML("Mix 1/2 cup milk", true, false)
- * // Returns: 'Mix <span class="quantity" title="METRIC-ML=118.295" data-value="quantity:METRIC-ML=118.295">1/2 cup</span> milk'
+ * // Returns: 'Mix <span class="quantity" title="US_CUP=0.5" data-value="quantity:US_CUP=0.5">1/2 cup</span> milk <span class="quantity-metric" title="METRIC_ML=118.295" data-value="quantity:METRIC_ML=118.295">(118.295 mL)</span>'
  */
 export function annotateQuantitiesAsHTML(
   line: string,
   shouldConvertToMetric: boolean = false,
-  shouldRoundSatisfying: boolean = false,
+  shouldRoundSatisfyingParam?: boolean,
 ): string {
   return line.replace(QUANTITY_REGEX, (match, numberPart, unitString) => {
     const unitKey = UNIT_LOOKUP.get(unitString.toLowerCase());
@@ -64,11 +66,11 @@ export function annotateQuantitiesAsHTML(
       return match;
     }
 
-    const initialUnit = UNIT_DEFINITIONS.find(
+    const originalUnit = UNIT_DEFINITIONS.find(
       (unit: UnitDefinition) => unit.key === unitKey,
     );
 
-    if (!initialUnit) {
+    if (!originalUnit) {
       // Fallback - should not happen if our data is consistent
       return match;
     }
@@ -78,23 +80,33 @@ export function annotateQuantitiesAsHTML(
       const originalValue = parseFraction(numberPart.trim());
 
       let finalValue = originalValue;
-      let finalUnit = initialUnit;
+      let finalUnit = originalUnit;
+
+      // Determine if rounding should actually be applied
+      const applyRounding = (shouldRoundSatisfyingParam === undefined)
+                              ? shouldConvertToMetric // Default: if converting to metric and not specified, then round.
+                              : shouldRoundSatisfyingParam; // Otherwise, use the explicitly passed value.
+
 
       if (shouldConvertToMetric) {
         // Skip conversion if already metric
-        if (initialUnit.key.startsWith("METRIC_")) {
+        if (originalUnit.key.startsWith("METRIC_")) {
           // Already metric, no conversion needed
           finalValue = originalValue;
-          finalUnit = initialUnit;
+          finalUnit = originalUnit;
         } else {
           // Convert to metric system
           try {
             // First convert to base metric unit
             let baseMetricUnit: UnitDefinition;
-            if (initialUnit.to_l) {
-              baseMetricUnit = UNIT_DEFINITIONS.find(u => u.key === "METRIC_L")!;
-            } else if (initialUnit.to_kg) {
-              baseMetricUnit = UNIT_DEFINITIONS.find(u => u.key === "METRIC_KG")!;
+            if (originalUnit.to_l) {
+              baseMetricUnit = UNIT_DEFINITIONS.find(
+                (u) => u.key === "METRIC_L",
+              )!;
+            } else if (originalUnit.to_kg) {
+              baseMetricUnit = UNIT_DEFINITIONS.find(
+                (u) => u.key === "METRIC_KG",
+              )!;
             } else {
               // No conversion available
               return match;
@@ -103,7 +115,7 @@ export function annotateQuantitiesAsHTML(
             // Convert to base metric unit
             const [baseValue, baseUnit] = convertMeasurement(
               originalValue,
-              initialUnit,
+              originalUnit,
               baseMetricUnit,
             );
 
@@ -125,9 +137,10 @@ export function annotateQuantitiesAsHTML(
             }
 
             // Apply rounding if requested
-            if (shouldRoundSatisfying) {
+            if (applyRounding) {
               finalValue = roundSatisfying(finalValue);
             } else {
+              // Ensure consistent precision if not rounding "satisfyingly"
               finalValue = parseFloat(finalValue.toFixed(7));
             }
           } catch (error) {
@@ -137,17 +150,17 @@ export function annotateQuantitiesAsHTML(
         }
       }
 
-      // Format unit key for data attributes (replace underscores with hyphens)
-      const dataUnitKey = finalUnit.key.replace(/_/g, "-");
-      const title = `${dataUnitKey}=${finalValue}`;
-      const dataValue = `quantity:${dataUnitKey}=${finalValue}`;
+      let quantityValue = `${originalUnit.key}=${originalValue}`;
+      let outHtml = `<span class="quantity" title="${quantityValue}" data-value="quantity:${quantityValue}">${match}</span>`;
 
-      if (shouldConvertToMetric && finalUnit.key !== initialUnit.key) {
+      if (shouldConvertToMetric && finalUnit.key !== originalUnit.key) {
         // Show conversion in parentheses
-        return `<span class="quantity" title="${title}" data-value="${dataValue}">${match} (${finalValue} ${finalUnit.displayName})</span>`;
+        quantityValue = `${finalUnit.key}=${finalValue}`;
+        outHtml += ` <span class="quantity-metric" title="${quantityValue}" data-value="quantity:${quantityValue}">(${finalValue} ${finalUnit.displayName})</span>`;
+        return outHtml;
       } else {
         // No conversion or same unit
-        return `<span class="quantity" title="${title}" data-value="${dataValue}">${match}</span>`;
+        return outHtml;
       }
     } catch {
       // If parsing fails, return original match
