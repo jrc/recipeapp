@@ -258,7 +258,7 @@
   function parseDurationToSeconds(durationText, unit) {
     const multiplier = UNIT_MULTIPLIERS.get(unit.toLowerCase()) || 1;
     const rangeMatch = durationText.match(
-      /^(\d+(?:\.\d+)?)\s*(?:-|to)\s*(\d+(?:\.\d+)?)$/
+      /^(\d+(?:\.\d+)?)\s*(?:-|\u2013|to)\s*(\d+(?:\.\d+)?)$/
     );
     if (rangeMatch) {
       const start = parseFloat(rangeMatch[1]);
@@ -274,7 +274,7 @@
   function createDurationRegex() {
     const allUnits = DURATION_UNITS.flatMap((unit) => unit.variations).sort((a, b) => b.length - a.length).map((unit) => unit.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
     const numberPattern = `\\d+(?:\\.\\d+)?`;
-    const rangePattern = `(?:\\s*(?:-|to)\\s*${numberPattern})?`;
+    const rangePattern = `(?:\\s*(?:-|\u2013|to)\\s*${numberPattern})?`;
     const fullPattern = `(${numberPattern}${rangePattern})\\s+(${allUnits.join("|")})\\b`;
     return new RegExp(fullPattern, "gi");
   }
@@ -623,7 +623,7 @@
       (variation) => variation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     );
     const numberPatternSource = createNumberPattern().source;
-    const pattern = `(${numberPatternSource})\\s*\\b(${allVariations.join("|")})\\b`;
+    const pattern = `(${numberPatternSource})\\s*(${allVariations.join("|")})\\b`;
     return new RegExp(pattern, "gi");
   }
   var QUANTITY_REGEX = createQuantityRegex();
@@ -791,7 +791,7 @@
     html = html.replace(/^>\s*(.*)$/gm, "<blockquote>$1</blockquote>");
     html = html.replace(/^##\s*(.*)$/gm, "<h2>$1</h2>");
     html = html.replace(/^#\s*(.*)$/gm, "<h1>$1</h1>");
-    html = html.replace(/^- (.*)$/gm, (_match, content) => {
+    html = html.replace(/^[-\*] (.*)$/gm, (_match, content) => {
       const annotatedContent = emphasizeIngredients(
         annotateDurationsAsHTML(annotateQuantitiesAsHTML(content, true, true))
       );
