@@ -1,3 +1,6 @@
+# Define ESBUILD_CMD to find esbuild in the project root (as in the GitHub Action), then fall back to system PATH
+ESBUILD_CMD := $(shell if [ -x "./esbuild" ]; then echo "./esbuild"; else echo "esbuild"; fi)
+
 .PHONY: all build dev clean
 
 # Default target: build the static dist folder
@@ -12,7 +15,7 @@ clean:
 build: clean
 	@echo "Building static dist folder..."
 	# Bundle JS/TS files into a subdirectory within dist
-	esbuild src/main.ts \
+	$(ESBUILD_CMD) src/main.ts \
 		--bundle \
 		--outdir=dist/ \
 		--entry-names=[name]
@@ -24,7 +27,7 @@ build: clean
 dev:
 	@echo "Starting esbuild with watch and serve..."
 	# Bundle JS/TS files and serve static assets from public_html
-	esbuild src/main.ts tests/test_runner.ts \
+	$(ESBUILD_CMD) src/main.ts tests/test_runner.ts \
 		--bundle \
 		--watch \
 		--servedir=public_html \
