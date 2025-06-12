@@ -96,7 +96,7 @@
     const finalCountdownDisplayElement = countdownDisplayElement;
     const updateDisplay = () => {
       if (finalCountdownDisplayElement) {
-        finalCountdownDisplayElement.textContent = `(${formatCountdownTime(currentRemainingSeconds)} left)`;
+        finalCountdownDisplayElement.textContent = `(\u23F2\uFE0F ${formatCountdownTime(currentRemainingSeconds)})`;
       }
     };
     updateDisplay();
@@ -111,7 +111,7 @@
         span.classList.remove("timer-active");
         span.classList.add("timer-done");
         if (finalCountdownDisplayElement) {
-          finalCountdownDisplayElement.textContent = `(TIMER DONE)`;
+          finalCountdownDisplayElement.textContent = `(\u23F2\uFE0F TIMER DONE)`;
         }
         playBeepSound();
         const beepIntervalId = window.setInterval(() => {

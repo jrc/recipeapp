@@ -28,6 +28,5 @@ dev:
 		--bundle \
 		--watch \
 		--servedir=public_html \
-		--outdir=public_html/dist/ \
-		--public-path=/dist \
+		--outdir=public_html/ \
 		--entry-names=[name]
