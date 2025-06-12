@@ -1,0 +1,145 @@
+body {
+    font-family: system-ui;
+    line-height: 1.6;
+    font-size: 112.5%;
+}
+
+/* Based on https://jrl.ninja/etc/1/ */
+main {
+    max-width: 70ch;
+    padding: 2ch;
+    margin: auto;
+}
+
+@media (min-width: 768px) {
+    main {
+        max-width: 85ch;
+    }
+}
+
+.tab-container {
+    /* max-width: 600px; */
+    /* margin: 50px auto; */
+}
+
+.tab-buttons {
+    display: flex;
+    /* border-bottom: 2px solid #ccc; */
+}
+
+.tab-button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #f1f1f1;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-button.active {
+    background-color: #ddd;
+}
+
+.tab-content {
+    display: none;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+#import input[type="url"],
+#edit textarea {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 4px;
+}
+
+#renderedRecipeView img {
+    max-width: 100%; /* Ensure image doesn't overflow its container */
+    height: auto; /* Maintain aspect ratio */
+    max-height: 160px;
+}
+
+#renderedRecipeView {
+    color: #4a4a4a;
+    font-weight: 300;
+}
+
+.quantity {
+    color: #000000;
+    font-weight: 400;
+}
+
+.quantity-metric {
+    font-family: cursive;
+    font-weight: bold;
+}
+
+.ingredient {
+    color: #000000;
+    font-weight: bold;
+}
+
+.duration {
+    color: #ff6347;
+    cursor: pointer;
+    text-decoration: underline dotted;
+}
+
+.duration.timer-active {
+    color: #ff6347;
+    background-color: #f8f8f0; /* Subtle grey-yellow */
+    padding: 2px 4px;
+}
+
+.duration.timer-done {
+    color: #ffffff;
+    background-color: #d32f2f;
+    padding: 2px 4px;
+    animation: flash-timer-done 1.3s infinite;
+}
+
+@keyframes flash-timer-done {
+    0%,
+    100% {
+        background-color: #d32f2f;
+    }
+    50% {
+        background-color: #ffebee; /* Brighter flash color */
+    }
+}
+
+.timer-countdown {
+    font-weight: bold;
+}
+
+/* Optimize View tab for printing */
+
+@media print {
+    main {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .tab-buttons {
+        display: none;
+    }
+
+    #view {
+        border: none !important;
+        padding: 0 !important;
+    }
+}
+
+/* Toggle strikethrough when clicking on ingredients and instruction list items */
+
+.strikethrough {
+    text-decoration: line-through;
+}
+
+#renderedRecipeView li,
+#renderedRecipeView p {
+    cursor: pointer;
+}
