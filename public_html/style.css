@@ -19,8 +19,7 @@ main {
 /* Rendered recipe */
 
 #renderedRecipeView {
-    line-height: 1.6;
-    font-size: 112.5%;
+    line-height: 1.2;
     font-weight: 300;
     color: #4a4a4a;
 }
@@ -29,6 +28,11 @@ main {
     max-width: 100%; /* Ensure image doesn't overflow its container */
     height: auto; /* Maintain aspect ratio */
     max-height: 160px;
+}
+
+#renderedRecipeView li {
+    line-height: 1.6;
+    font-size: 112.5%;
 }
 
 .quantity {
