@@ -152,7 +152,7 @@ function startCountdown(span: HTMLElement): void {
 
   const updateDisplay = () => {
     if (finalCountdownDisplayElement) {
-      finalCountdownDisplayElement.textContent = `(⏲️ ${formatCountdownTime(currentRemainingSeconds)})`;
+      finalCountdownDisplayElement.textContent = `(${formatCountdownTime(currentRemainingSeconds)})`;
     }
   };
   updateDisplay(); // Show initial state immediately
@@ -170,7 +170,7 @@ function startCountdown(span: HTMLElement): void {
       span.classList.remove("timer-active");
       span.classList.add("timer-done");
       if (finalCountdownDisplayElement) {
-        finalCountdownDisplayElement.textContent = `(⏲️ TIMER DONE)`;
+        finalCountdownDisplayElement.textContent = `(DONE)`;
       }
 
       // Play the first beep immediately

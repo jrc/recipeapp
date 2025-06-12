@@ -1,9 +1,3 @@
-body {
-    font-family: system-ui;
-    line-height: 1.6;
-    font-size: 112.5%;
-}
-
 /* Based on https://jrl.ninja/etc/1/ */
 main {
     max-width: 70ch;
@@ -17,54 +11,24 @@ main {
     }
 }
 
-.tab-container {
-    /* max-width: 600px; */
-    /* margin: 50px auto; */
-}
-
-.tab-buttons {
-    display: flex;
-    /* border-bottom: 2px solid #ccc; */
-}
-
-.tab-button {
-    padding: 10px 20px;
-    border: none;
-    background-color: #f1f1f1;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-}
-
-.tab-button.active {
-    background-color: #ddd;
-}
-
-.tab-content {
-    display: none;
-    padding: 10px;
-    border: 1px solid #ccc;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-#import input[type="url"],
 #edit textarea {
     width: 100%;
     box-sizing: border-box;
-    margin-bottom: 4px;
+}
+
+/* Rendered recipe */
+
+#renderedRecipeView {
+    line-height: 1.6;
+    font-size: 112.5%;
+    font-weight: 300;
+    color: #4a4a4a;
 }
 
 #renderedRecipeView img {
     max-width: 100%; /* Ensure image doesn't overflow its container */
     height: auto; /* Maintain aspect ratio */
     max-height: 160px;
-}
-
-#renderedRecipeView {
-    color: #4a4a4a;
-    font-weight: 300;
 }
 
 .quantity {
@@ -83,13 +47,17 @@ main {
 }
 
 .duration {
-    color: #b85c00;
-    cursor: pointer;
+    /* color: #b85c00; */
     text-decoration: underline dotted;
+
+    cursor: pointer;
 }
 
+/* Timers */
+
 .duration.timer-active {
-    color: #ff6347;
+    color: #b85c00; /* Burnt orange */
+    /* color: #ff6347; */ /* Bright orange */
     background-color: #f8f8f0; /* Subtle grey-yellow */
     padding: 2px 4px;
 }
@@ -103,11 +71,12 @@ main {
 
 @keyframes flash-timer-done {
     0%,
-    100% {
+    49% {
         background-color: #d32f2f;
     }
-    50% {
-        background-color: #ffebee; /* Brighter flash color */
+    50%,
+    100% {
+        background-color: #ffebee;
     }
 }
 
@@ -115,7 +84,18 @@ main {
     font-weight: bold;
 }
 
-/* Optimize View tab for printing */
+/* List item strikethrough */
+
+.strikethrough {
+    text-decoration: line-through;
+}
+
+#renderedRecipeView li,
+#renderedRecipeView p {
+    cursor: pointer;
+}
+
+/* Printing */
 
 @media print {
     main {
@@ -131,15 +111,4 @@ main {
         border: none !important;
         padding: 0 !important;
     }
-}
-
-/* Toggle strikethrough when clicking on ingredients and instruction list items */
-
-.strikethrough {
-    text-decoration: line-through;
-}
-
-#renderedRecipeView li,
-#renderedRecipeView p {
-    cursor: pointer;
 }

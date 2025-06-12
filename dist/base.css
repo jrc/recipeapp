@@ -1,0 +1,103 @@
+:root {
+    /* Colors */
+    --primary-blue: rgb(0, 123, 255);
+    --white: rgb(255, 255, 255);
+    --dark-gray: rgb(73, 80, 87);
+    --light-gray-tabs-border: rgb(222, 226, 230);
+
+    /* Spacing */
+    --padding-base-vertical: 8px;
+    --padding-base-horizontal: 16px;
+
+    /* Font Sizes */
+    --font-size-base: 16px;
+
+    /* Border */
+    --border-width-base: 1px;
+    --border-style-base: solid;
+    --border-radius-base: 0.25rem;
+}
+
+body {
+    font-family: system-ui;
+}
+
+.tab-buttons {
+    display: flex;
+}
+
+/* based on https://getbootstrap.com/docs/4.0/components/navs/#tabs */
+.tab-button {
+    /* Layout */
+    margin-bottom: -1px;
+
+    /* Metrics */
+    padding: var(--padding-base-vertical) var(--padding-base-horizontal);
+    font-size: var(--font-size-base);
+
+    /* Appearance */
+    color: var(--primary-blue);
+    background-color: transparent;
+    border: none;
+
+    /* Behavior */
+    cursor: pointer;
+}
+
+.tab-button.active {
+    /* Appearance */
+    color: var(--dark-gray);
+    background-color: var(--white);
+    border: var(--border-width-base) var(--border-style-base)
+        var(--light-gray-tabs-border);
+    border-bottom-color: var(--white);
+    border-top-left-radius: var(--border-radius-base);
+    border-top-right-radius: var(--border-radius-base);
+}
+
+.tab-content {
+    display: none;
+    padding: 10px;
+    border: var(--border-width-base) var(--border-style-base)
+        var(--light-gray-tabs-border);
+}
+
+.tab-content.active {
+    display: block;
+}
+
+#import input[type="url"] {
+    /* Layout */
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+
+    /* Metrics */
+    padding: 6px 12px;
+    font-size: var(--font-size-base);
+    line-height: 24px;
+
+    /* Appearance */
+    border: var(--border-width-base) var(--border-style-base) rgb(206, 212, 218);
+    border-radius: var(--border-radius-base);
+    color: var(--dark-gray);
+}
+
+#import button {
+    /* Metrics */
+    padding: var(--padding-base-vertical) var(--padding-base-horizontal);
+    border-radius: var(--border-radius-base);
+    font-size: var(--font-size-base);
+
+    /* Appearance */
+    background-color: var(--primary-blue);
+    border: var(--border-width-base) var(--border-style-base) transparent;
+    color: var(--white);
+
+    /* Behavior */
+    cursor: pointer;
+}
+
+#import button:disabled {
+    background-color: rgb(108, 117, 125);
+}

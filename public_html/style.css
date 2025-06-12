@@ -47,7 +47,7 @@ main {
 }
 
 .duration {
-    color: #b85c00;
+    /* color: #b85c00; */
     text-decoration: underline dotted;
 
     cursor: pointer;
@@ -56,7 +56,8 @@ main {
 /* Timers */
 
 .duration.timer-active {
-    color: #ff6347;
+    color: #b85c00; /* Burnt orange */
+    /* color: #ff6347; */ /* Bright orange */
     background-color: #f8f8f0; /* Subtle grey-yellow */
     padding: 2px 4px;
 }
@@ -70,10 +71,11 @@ main {
 
 @keyframes flash-timer-done {
     0%,
-    100% {
+    49% {
         background-color: #d32f2f;
     }
-    50% {
+    50%,
+    100% {
         background-color: #ffebee;
     }
 }

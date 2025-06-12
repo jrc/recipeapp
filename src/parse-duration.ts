@@ -115,7 +115,7 @@ export function annotateDurationsAsHTML(text: string): string {
       const formattedSeconds =
         seconds % 1 === 0 ? seconds.toString() : seconds.toString();
 
-      return `<span class="duration" title="SEC=${formattedSeconds}" data-value="duration:SEC=${formattedSeconds}">${match}</span>`;
+      return `<span class="duration" title="SEC=${formattedSeconds}" data-value="duration:SEC=${formattedSeconds}">⏲️ ${match}</span>`;
     } catch {
       // If parsing fails, return original match
       return match;
