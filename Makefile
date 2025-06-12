@@ -10,7 +10,7 @@ build:
 		--bundle \
 		--outdir=dist/dist \
 		--entry-names=[name]
-	cp -r public_html/* dist/
+	cp -r src/public_html/* dist/
 	@echo "Static build complete."
 
 # Target to build and serve with watch enabled for development
@@ -19,7 +19,7 @@ dev:
 	esbuild src/main.ts tests/test_runner.ts \
 		--bundle \
 		--watch \
-		--servedir=public_html \
+		--servedir=src/public_html \
 		--outdir=dist \
 		--public-path=/dist \
 		--entry-names=[name]
