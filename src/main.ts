@@ -79,8 +79,6 @@ async function initializeApp() {
 
     // Attach the main import logic to the button click
     ui.elements.importButton.addEventListener("click", handleImport);
-
-    console.log("Application initialized successfully.");
   } catch (error) {
     console.error("Failed to initialize application:", error);
     alert(

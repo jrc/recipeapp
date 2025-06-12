@@ -69,12 +69,12 @@ main {
 
 .quantity {
     color: #000000;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .ingredient {
     color: #000000;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .duration {

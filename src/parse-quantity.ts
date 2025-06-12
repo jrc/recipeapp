@@ -11,7 +11,7 @@ import {
 const UNIT_LOOKUP = new Map<string, string>();
 for (const unit of UNIT_DEFINITIONS) {
   for (const variation of unit.variations) {
-    UNIT_LOOKUP.set(variation.toLowerCase(), unit.standardName);
+    UNIT_LOOKUP.set(variation.toLowerCase(), unit.key);
   }
 }
 
@@ -54,95 +54,101 @@ const QUANTITY_REGEX = createQuantityRegex();
 export function annotateQuantitiesAsHTML(
   line: string,
   shouldConvertToMetric: boolean = false,
-  shouldRoundSatisfying: boolean = true,
+  shouldRoundSatisfying: boolean = false,
 ): string {
-  return line.replace(QUANTITY_REGEX, (match, numberPart, unit) => {
-    const standardUnit = UNIT_LOOKUP.get(unit.toLowerCase());
+  return line.replace(QUANTITY_REGEX, (match, numberPart, unitString) => {
+    const unitKey = UNIT_LOOKUP.get(unitString.toLowerCase());
 
-    if (!standardUnit) {
+    if (!unitKey) {
+      // Fallback - should not happen if our data is consistent
+      return match;
+    }
+
+    const initialUnit = UNIT_DEFINITIONS.find(
+      (unit: UnitDefinition) => unit.key === unitKey,
+    );
+
+    if (!initialUnit) {
       // Fallback - should not happen if our data is consistent
       return match;
     }
 
     try {
       // Use parseFraction to handle all number formats (fractions, mixed numbers, decimals, etc.)
-      const value = parseFraction(numberPart.trim());
+      const originalValue = parseFraction(numberPart.trim());
 
-      // Convert standardName format: US_CUP -> US-CUP
-      let displayUnit = standardUnit.replace(/_/g, "-");
-      let convertedValue = value;
-      let dataValue = `quantity:${displayUnit}=${value}`;
+      let finalValue = originalValue;
+      let finalUnit = initialUnit;
 
       if (shouldConvertToMetric) {
-        const currentUnit = UNIT_DEFINITIONS.find(
-          (unit: UnitDefinition) => unit.standardName === standardUnit,
-        );
-
-        if (currentUnit) {
-          // Skip conversion if already metric
-          if (standardUnit.startsWith("METRIC_")) {
-            // Already metric, no conversion needed
-          }
+        // Skip conversion if already metric
+        if (initialUnit.key.startsWith("METRIC_")) {
+          // Already metric, no conversion needed
+          finalValue = originalValue;
+          finalUnit = initialUnit;
+        } else {
           // Convert to metric system
-          else {
-            try {
-              // First convert to base metric unit
-              let targetUnit: string;
-              if (currentUnit.to_l) {
-                targetUnit = "METRIC_L"; // Start with liters
-              } else if (currentUnit.to_kg) {
-                targetUnit = "METRIC_KG"; // Start with kilograms
-              } else {
-                // No conversion available
-                return match;
-              }
-
-              // Convert to metric
-              const [metricValue, metricUnit] = convertMeasurement(
-                value,
-                standardUnit,
-                targetUnit,
-              );
-
-              // Find optimal unit for the converted value
-              const optimalUnit = getOptimalUnit(
-                metricValue,
-                metricUnit,
-                "METRIC",
-              );
-
-              // Convert to optimal unit if different
-              if (optimalUnit !== metricUnit) {
-                const [finalValue, finalUnit] = convertMeasurement(
-                  metricValue,
-                  metricUnit,
-                  optimalUnit,
-                );
-                if (shouldRoundSatisfying) {
-                  convertedValue = roundSatisfying(finalValue);
-                } else {
-                  convertedValue = parseFloat(finalValue.toFixed(7));
-                }
-                displayUnit = finalUnit.replace(/_/g, "-");
-              } else {
-                if (shouldRoundSatisfying) {
-                  convertedValue = roundSatisfying(metricValue);
-                } else {
-                  convertedValue = parseFloat(metricValue.toFixed(7));
-                }
-                displayUnit = metricUnit.replace(/_/g, "-");
-              }
-
-              dataValue = `quantity:${displayUnit}=${convertedValue}`;
-            } catch (error) {
-              // If conversion fails, return original match
+          try {
+            // First convert to base metric unit
+            let baseMetricUnit: UnitDefinition;
+            if (initialUnit.to_l) {
+              baseMetricUnit = UNIT_DEFINITIONS.find(u => u.key === "METRIC_L")!;
+            } else if (initialUnit.to_kg) {
+              baseMetricUnit = UNIT_DEFINITIONS.find(u => u.key === "METRIC_KG")!;
+            } else {
+              // No conversion available
               return match;
             }
+
+            // Convert to base metric unit
+            const [baseValue, baseUnit] = convertMeasurement(
+              originalValue,
+              initialUnit,
+              baseMetricUnit,
+            );
+
+            // Find optimal unit for the converted value
+            const optimalUnit = getOptimalUnit(baseValue, baseUnit, "METRIC");
+
+            // Convert to optimal unit if different from base
+            if (optimalUnit.key !== baseUnit.key) {
+              const [optimalValue, optimalUnitResult] = convertMeasurement(
+                baseValue,
+                baseUnit,
+                optimalUnit,
+              );
+              finalValue = optimalValue;
+              finalUnit = optimalUnitResult;
+            } else {
+              finalValue = baseValue;
+              finalUnit = baseUnit;
+            }
+
+            // Apply rounding if requested
+            if (shouldRoundSatisfying) {
+              finalValue = roundSatisfying(finalValue);
+            } else {
+              finalValue = parseFloat(finalValue.toFixed(7));
+            }
+          } catch (error) {
+            // If conversion fails, return original match
+            return match;
           }
         }
       }
 
-      return `<span class="quantity" title="${displayUnit}=${convertedValue}" data-value="${dataValue}">${match}</span>`;
+      // Format unit key for data attributes (replace underscores with hyphens)
+      const dataUnitKey = finalUnit.key.replace(/_/g, "-");
+      const title = `${dataUnitKey}=${finalValue}`;
+      const dataValue = `quantity:${dataUnitKey}=${finalValue}`;
+
+      if (shouldConvertToMetric && finalUnit.key !== initialUnit.key) {
+        // Show conversion in parentheses
+        return `<span class="quantity" title="${title}" data-value="${dataValue}">${match} (${finalValue} ${finalUnit.displayName})</span>`;
+      } else {
+        // No conversion or same unit
+        return `<span class="quantity" title="${title}" data-value="${dataValue}">${match}</span>`;
+      }
     } catch {
       // If parsing fails, return original match
       return match;
