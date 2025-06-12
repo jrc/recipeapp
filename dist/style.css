@@ -94,8 +94,7 @@ main {
     text-decoration: line-through;
 }
 
-#renderedRecipeView li,
-#renderedRecipeView p {
+#renderedRecipeView li {
     cursor: pointer;
 }
 

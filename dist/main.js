@@ -219,7 +219,7 @@
         if (isDurationClick) {
           return;
         }
-        if (target.tagName === "LI" || target.tagName === "P") {
+        if (target.tagName === "LI") {
           target.classList.toggle("strikethrough");
         } else if (target.tagName === "SPAN" && (target.classList.contains("quantity") || target.classList.contains("ingredient"))) {
           const listItem = target.closest("li");
