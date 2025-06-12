@@ -69,44 +69,43 @@ export function initializeUI(
   updateImportButtonState(); // Set initial state
 }
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
   const renderedRecipeView = document.getElementById("renderedRecipeView");
 
   if (renderedRecipeView) {
-        // Initialize timers for duration spans from the timer module.
-        // This will attach its own event listener to renderedRecipeView for duration clicks.
-        initializeTimers(renderedRecipeView);
+    // Initialize timers for duration spans from the timer module.
+    // This will attach its own event listener to renderedRecipeView for duration clicks.
+    initializeTimers(renderedRecipeView);
 
-        // Add a separate click listener specifically for strikethrough functionality.
-        // This ensures that strikethrough logic does not interfere with timer clicks
-        // and is only processed if the click was not on a duration-related element.
-        renderedRecipeView.addEventListener("click", (event) => {
-          const target = event.target as HTMLElement;
+    // Add a separate click listener specifically for strikethrough functionality.
+    // This ensures that strikethrough logic does not interfere with timer clicks
+    // and is only processed if the click was not on a duration-related element.
+    renderedRecipeView.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement;
 
-          // Check if the click was on a duration span or its child.
-          // If so, it's handled by initializeTimers, so we do nothing here.
-          const isDurationClick = target.classList.contains("duration") || target.closest(".duration");
-          if (isDurationClick) {
-            return;
-          }
+      // Check if the click was on a duration span or its child.
+      // If so, it's handled by initializeTimers, so we do nothing here.
+      const isDurationClick =
+        target.classList.contains("duration") || target.closest(".duration");
+      if (isDurationClick) {
+        return;
+      }
 
-          // Strikethrough logic for list items and paragraphs
-          if (target.tagName === "LI" || target.tagName === "P") {
-            target.classList.toggle("strikethrough");
-          } else if (
-            target.tagName === "SPAN" &&
-            (target.classList.contains("quantity") ||
-              target.classList.contains("ingredient"))
-          ) {
-            // Strikethrough logic for ingredient/quantity spans within list items
-            // (typically, these are children of an LI)
-            const listItem = target.closest("li");
-            if (listItem) {
-              listItem.classList.toggle("strikethrough");
-            }
-          }
-        });
+      // Strikethrough logic for list items
+      if (target.tagName === "LI") {
+        target.classList.toggle("strikethrough");
+      } else if (
+        target.tagName === "SPAN" &&
+        (target.classList.contains("quantity") ||
+          target.classList.contains("ingredient"))
+      ) {
+        // Strikethrough logic for ingredient/quantity spans within list items
+        // (typically, these are children of an LI)
+        const listItem = target.closest("li");
+        if (listItem) {
+          listItem.classList.toggle("strikethrough");
+        }
+      }
+    });
   }
 });
