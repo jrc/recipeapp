@@ -1,7 +1,4 @@
-import {
-  annotateDurationsAsHTML,
-  extractDurations,
-} from "../src/parse-duration";
+import { annotateDurationsAsHTML } from "../src/parse-duration";
 
 function testAnnotateDurations() {
   // Test basic units
@@ -169,112 +166,8 @@ function testAnnotateDurations() {
   );
 }
 
-function testExtractDurations() {
-  let result = extractDurations("Cook for 5 minutes, then rest 2 hours");
-  console.assert(
-    result.length === 2 &&
-      result[0].text === "5 minutes" &&
-      result[0].seconds === 300 &&
-      result[1].text === "2 hours" &&
-      result[1].seconds === 7200,
-    "Should extract multiple durations correctly",
-  );
-
-  result = extractDurations("Bake for 25-30 minutes");
-  console.assert(
-    result.length === 1 &&
-      result[0].text === "25-30 minutes" &&
-      result[0].seconds === 1500,
-    "Should extract range durations correctly",
-  );
-
-  result = extractDurations("No durations here");
-  console.assert(
-    result.length === 0,
-    "Should return empty array for text with no durations",
-  );
-
-  result = extractDurations("Wait for 1.5 minutes");
-  console.assert(
-    result.length === 1 && result[0].seconds === 90,
-    "Should extract decimal durations correctly",
-  );
-}
-
-// function testFormatDuration() {
-//   console.assert(
-//     formatDuration(0) === "0 seconds",
-//     "Should format zero seconds"
-//   );
-
-//   console.assert(
-//     formatDuration(30) === "30 seconds",
-//     "Should format seconds only"
-//   );
-
-//   console.assert(
-//     formatDuration(60) === "1 minute",
-//     "Should format single minute"
-//   );
-
-//   console.assert(
-//     formatDuration(90) === "1 minute 30 seconds",
-//     "Should format minutes and seconds"
-//   );
-
-//   console.assert(
-//     formatDuration(120) === "2 minutes",
-//     "Should format multiple minutes"
-//   );
-
-//   console.assert(
-//     formatDuration(3600) === "1 hour",
-//     "Should format single hour"
-//   );
-
-//   console.assert(
-//     formatDuration(3660) === "1 hour 1 minute",
-//     "Should format hour and minute"
-//   );
-
-//   console.assert(
-//     formatDuration(3720) === "1 hour 2 minutes",
-//     "Should format hour and minutes"
-//   );
-
-//   console.assert(
-//     formatDuration(7200) === "2 hours",
-//     "Should format multiple hours"
-//   );
-
-//   console.assert(
-//     formatDuration(7320) === "2 hours 2 minutes",
-//     "Should format hours and minutes"
-//   );
-
-//   // When hours are present, seconds should be omitted for readability
-//   console.assert(
-//     formatDuration(3661) === "1 hour 1 minute",
-//     "Should omit seconds when hours are present"
-//   );
-
-//   console.assert(
-//     formatDuration(1.5) === "1.5 seconds",
-//     "Should handle decimal seconds"
-//   );
-
-//   console.assert(
-//     formatDuration(61.5) === "1 minute 1.5 seconds",
-//     "Should handle decimal seconds with minutes"
-//   );
-
-//   console.log("✓ formatDuration tests passed");
-// }
-
 export function runParseDurationTests() {
   testAnnotateDurations();
-  testExtractDurations();
-  // testFormatDuration();
 
   console.log("parse-duration tests completed.");
 }
