@@ -1,13 +1,13 @@
 /* Based on https://jrl.ninja/etc/1/ */
 main {
     max-width: 70ch;
-    padding: 2ch;
     margin: auto;
 }
 
 @media (min-width: 768px) {
     main {
         max-width: 85ch;
+        padding: 2ch;
     }
 }
 
@@ -20,6 +20,7 @@ main {
 
 #renderedRecipeView {
     line-height: 1.2;
+    font-size: small;
     font-weight: 300;
     color: #4a4a4a;
 }
@@ -32,7 +33,7 @@ main {
 
 #renderedRecipeView li {
     line-height: 1.6;
-    font-size: 112.5%;
+    font-size: large;
 }
 
 .quantity {
@@ -51,7 +52,6 @@ main {
 }
 
 .duration {
-    /* color: #b85c00; */
     text-decoration: underline dotted;
 
     cursor: pointer;
