@@ -1,2 +1,8 @@
-- Add support for url parameter
+- bookmarkable urls
+- Fahrenheit to Celsius
+- volume-to-mass conversion for butter/flour/sugar
+
 - Scale all quantities
+
+- share button
+- accept API key to add LLM-assisted editing
