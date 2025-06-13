@@ -70,7 +70,7 @@ async function processRecipeUrl(urlToProcess: string): Promise<boolean> {
  */
 async function manageFullImportCycle(
   url: string,
-  switchToEditOnSuccess: boolean,
+  switchToDefaultViewOnSuccess: boolean,
 ): Promise<boolean> {
   if (!url) {
     // alert("Please enter a URL to import."); // Or rely on button disable state
@@ -85,19 +85,22 @@ async function manageFullImportCycle(
     processingResult = await processRecipeUrl(url);
 
     if (processingResult) {
-      ui.notifyUrlImportSuccess(url); // Updates lastImportedUrl for URL sync
+      ui.notifyUrlImportSuccess(url);
 
-      if (switchToEditOnSuccess) {
-        // This call will also trigger updateBrowserURL via switchToTab
-        ui.switchToTab("edit", handleTabSwitch, url);
+      if (switchToDefaultViewOnSuccess) {
+        // This is for manual import: switch to "view" and set the URL.
+        ui.switchToTab("view", handleTabSwitch, url); // url is string -> set URL
+        // Explicitly render the view tab with new content,
+        // as switchToTab's callback might not fire if already on "view".
+        handleTabSwitch("view");
       } else {
-        // Auto-import: The initial tab is already active (silently).
-        // If the current active tab (which was set as initialTab) is "view",
-        // we need to render the newly imported content.
+        // This is for auto-import (switchToDefaultViewOnSuccess is false):
+        // The initial tab is already active (silently).
+        // If that initial tab is "view", render the newly imported content.
         if (ui.getCurrentTabId() === "view") {
           handleTabSwitch("view");
         }
-        // Ensure browser URL reflects the imported recipe URL and the current (initial) tab.
+        // Update the browser URL to include the imported 'url' and current 'initialTab'.
         ui.updateBrowserURL(url);
       }
     }
@@ -153,8 +156,8 @@ async function initializeApp() {
 
     // Switch to the initial tab.
     // This first call to switchToTab will NOT update the browser URL because
-    // the urlAction is 'no-update'.
-    ui.switchToTab(initialTab, handleTabSwitch, "no-update");
+    // urlToSet is undefined (no change mode).
+    ui.switchToTab(initialTab, handleTabSwitch);
 
     // If a URL was provided in the query parameters, attempt to import it automatically.
     // The `manageFullImportCycle` function with `switchToEditOnSuccess: false` will handle

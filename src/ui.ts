@@ -63,7 +63,11 @@ export function notifyUrlImportSuccess(importedUrl: string): void {
 export function switchToTab(
   tabId: TabId,
   onTabSwitch?: (tabId: TabId) => void,
-  urlAction?: "preserve" | "no-update" | string,
+  // urlToSet:
+  // - undefined (parameter omitted): Don't change the browser URL.
+  // - null: Clear the 'url' query parameter.
+  // - string: Set the 'url' query parameter to this value.
+  urlToSet?: string | null,
 ): void {
   elements.tabButtons.forEach((btn) => btn.classList.remove("active"));
   elements.tabContents.forEach((content) => content.classList.remove("active"));
@@ -77,12 +81,9 @@ export function switchToTab(
     buttonToActivate.classList.add("active");
     contentToActivate.classList.add("active");
 
-    if (urlAction !== "no-update") {
-      if (urlAction === "preserve") {
-        updateBrowserURL(); // Preserve current URL param
-      } else if (typeof urlAction === "string") {
-        updateBrowserURL(urlAction); // Set specific URL
-      }
+    if (urlToSet !== undefined) {
+      // Only update URL if explicitly requested
+      updateBrowserURL(urlToSet);
     }
 
     if (onTabSwitch) {
@@ -100,6 +101,10 @@ export function getCurrentTabId(): TabId {
 }
 
 // Function to update the browser URL with current state (recipe URL and active tab)
+// urlToSet:
+// - string: Set the 'url' query parameter to this value.
+// - null: Clear the 'url' query parameter.
+// - undefined: Preserve current 'url' parameter from window.location.search.
 export function updateBrowserURL(urlToSet?: string | null): void {
   const activeTabId = getCurrentTabId();
   const queryParams = new URLSearchParams();
@@ -151,26 +156,21 @@ export function initializeUI(
     button.addEventListener("click", () => {
       const tab = button.getAttribute("data-tab") as TabId;
       if (tab) {
-        switchToTab(tab, onTabSwitchCallback, "preserve");
+        // When user clicks a tab, don't change URL (urlToSet is undefined)
+        switchToTab(tab, onTabSwitchCallback);
       }
     });
   });
 
-  // Event listener for the URL input field
   elements.urlInput.addEventListener("input", () => {
     _updateImportButtonState();
     updateBrowserURL(null); // Clear URL param when user edits input
   });
 
-  // The initial state of the import button is handled by setInitialUrl,
-  // which is called in main.ts before initializeUI.
-
-  // Event listener for the recipe edit text area
   elements.editTextArea.addEventListener("input", () => {
     updateBrowserURL(null); // Clear URL param when user edits content
   });
 
-  // Handle form submission
   elements.importForm.addEventListener("submit", (event) => {
     event.preventDefault(); // Prevent the default form submission
 
