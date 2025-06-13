@@ -21,7 +21,7 @@ export function runParseQuantityTests() {
       usCupDef,
       metricLiterDef,
     );
-    const expectedLiters = 2 * 0.236588;
+    const expectedLiters = 2 * 0.23659; // Using the exact value from units.ts for US_CUP
     const toleranceLiters = 0.00001;
     console.assert(
       Math.abs(valueInLiters - expectedLiters) <= toleranceLiters,
@@ -47,8 +47,8 @@ export function runParseQuantityTests() {
       unitAfterConversionToL,
       optimalUnitForLiters,
     );
-    const expectedMl = 473.176;
-    const toleranceMl = 0.005; // Adjusted tolerance
+    const expectedMl = expectedLiters * 1000; // Convert expected Liters to mL
+    const toleranceMl = 0.005;
     console.assert(
       Math.abs(valueInMl - expectedMl) <= toleranceMl,
       `Conversion from ${valueInLiters} L to mL. Expected: ${expectedMl} (approx.), Actual: ${valueInMl}, Tolerance: ${toleranceMl}`,
@@ -88,7 +88,7 @@ export function runParseQuantityTests() {
     {
       description:
         "Fractional US quantity, with metric conversion, no rounding",
-      input: "Mix 1/2 cup milk", // 0.5 US cups = 118.294 mL (actually 118.295 due to toFixed(7) rounding)
+      input: "Mix 1/2 cup milk", // 0.5 US cups = 0.5 * 0.23659 L = 0.118295 L = 118.295 mL
       convertToMetric: true,
       roundSatisfying: false,
       expected:
@@ -97,7 +97,7 @@ export function runParseQuantityTests() {
     {
       description:
         "Decimal US quantity, with metric conversion (default rounding)",
-      input: "Use 1.5 tsp salt", // 1.5 tsp = 7.39338 mL, rounds to 7.5 mL
+      input: "Use 1.5 tsp salt", // 1.5 tsp = 1.5 * 0.005 L = 0.0075 L = 7.5 mL
       convertToMetric: true,
       expected:
         'Use <span class="quantity" title="TSP=1.5" data-value="quantity:TSP=1.5">1.5 tsp</span> <span class="quantity-metric" title="METRIC_ML=7.5" data-value="quantity:METRIC_ML=7.5">(7.5 ml)</span> salt',
@@ -114,8 +114,8 @@ export function runParseQuantityTests() {
       description: "Multiple quantities in one line, with conversion",
       input: "Take 1 cup sugar and 1/2 lb butter",
       convertToMetric: true,
-      // 1 US Cup = 236.588 mL, rounds to 235 ml
-      // 0.5 lb = 226.796 g, rounds to 225 g
+      // 1 US Cup (0.23659 L) -> 236.59 mL -> rounds to 235 ml
+      // 0.5 lb (0.5 * 0.45359 kg) -> 0.226795 kg -> 226.795 g -> rounds to 225 g
       expected:
         'Take <span class="quantity" title="US_CUP=1" data-value="quantity:US_CUP=1">1 cup</span> <span class="quantity-metric" title="METRIC_ML=235" data-value="quantity:METRIC_ML=235">(235 ml)</span> sugar and <span class="quantity" title="US_LB=0.5" data-value="quantity:US_LB=0.5">1/2 lb</span> <span class="quantity-metric" title="METRIC_G=225" data-value="quantity:METRIC_G=225">(225 g)</span> butter',
     },
@@ -128,10 +128,92 @@ export function runParseQuantityTests() {
     },
     {
       description: "Unicode fraction ¼ cup, with metric conversion",
-      input: "Add ¼ cup sugar", // 0.25 US_CUP = 59.147 mL, rounds to 60ml
+      input: "Add ¼ cup sugar", // 0.25 US_CUP = 0.25 * 0.23659 L = 0.0591475 L = 59.1475 mL, rounds to 59 ml
       convertToMetric: true,
       expected:
         'Add <span class="quantity" title="US_CUP=0.25" data-value="quantity:US_CUP=0.25">¼ cup</span> <span class="quantity-metric" title="METRIC_ML=59" data-value="quantity:METRIC_ML=59">(59 ml)</span> sugar',
+    },
+    // --- Temperature Tests ---
+    {
+      description:
+        "Fahrenheit to Celsius (32F -> 0C), exact conversion, default rounding (satisfying)",
+      input: "Water freezes at 32 F.",
+      convertToMetric: true, // roundSatisfying defaults to true
+      expected:
+        'Water freezes at <span class="quantity" title="F=32" data-value="quantity:F=32">32 F</span> <span class="quantity-metric" title="C=0" data-value="quantity:C=0">(0°C)</span>.',
+    },
+    {
+      description:
+        "Fahrenheit to Celsius (32F -> 0.0C), exact conversion, no rounding",
+      input: "Water freezes at 32°F.",
+      convertToMetric: true,
+      roundSatisfying: false,
+      expected:
+        'Water freezes at <span class="quantity" title="F=32" data-value="quantity:F=32">32°F</span> <span class="quantity-metric" title="C=0" data-value="quantity:C=0">(0.0°C)</span>.',
+    },
+    {
+      description:
+        "Fahrenheit to Celsius (212F -> 100C), exact conversion, default rounding",
+      input: "Water boils at 212 °F.",
+      convertToMetric: true,
+      expected:
+        'Water boils at <span class="quantity" title="F=212" data-value="quantity:F=212">212 °F</span> <span class="quantity-metric" title="C=100" data-value="quantity:C=100">(100°C)</span>.',
+    },
+    {
+      description:
+        "Fahrenheit to Celsius (70F -> 21.1C), decimal conversion, no rounding",
+      input: "Average room temp is 70 F", // 70F = 21.111... C
+      convertToMetric: true,
+      roundSatisfying: false,
+      expected:
+        'Average room temp is <span class="quantity" title="F=70" data-value="quantity:F=70">70 F</span> <span class="quantity-metric" title="C=21.1" data-value="quantity:C=21.1">(21.1°C)</span>',
+    },
+    {
+      description:
+        "Fahrenheit to Celsius (70F -> 21C), decimal conversion, default (satisfying) rounding",
+      input: "Warm room at 70°F", // 70F = 21.111... C, roundSatisfying -> 21
+      convertToMetric: true,
+      expected:
+        'Warm room at <span class="quantity" title="F=70" data-value="quantity:F=70">70°F</span> <span class="quantity-metric" title="C=21" data-value="quantity:C=21">(21°C)</span>',
+    },
+    {
+      description:
+        "Fahrenheit to Celsius (68F -> 20C), exact decimal conversion, default rounding",
+      input: "A cool day at 68F", // 68F = 20C exactly
+      convertToMetric: true,
+      expected:
+        'A cool day at <span class="quantity" title="F=68" data-value="quantity:F=68">68F</span> <span class="quantity-metric" title="C=20" data-value="quantity:C=20">(20°C)</span>',
+    },
+    {
+      description:
+        "Fahrenheit to Celsius (69F -> 20.5C), non-exact decimal, explicit satisfying rounding",
+      input: "A mild 69 Fahrenheit", // 69F = 20.555... C. roundSatisfying -> 20.5
+      convertToMetric: true,
+      roundSatisfying: true,
+      expected:
+        'A mild <span class="quantity" title="F=69" data-value="quantity:F=69">69 Fahrenheit</span> <span class="quantity-metric" title="C=20.5" data-value="quantity:C=20.5">(20.5°C)</span>',
+    },
+    {
+      description:
+        "Already Celsius, convertToMetric is true (no change, no metric span)",
+      input: "Boil at 100 °C please.",
+      convertToMetric: true,
+      expected:
+        'Boil at <span class="quantity" title="C=100" data-value="quantity:C=100">100 °C</span> please.',
+    },
+    {
+      description: "Fahrenheit, convertToMetric is false (no change)",
+      input: "It's 75F here.",
+      convertToMetric: false,
+      expected:
+        'It\'s <span class="quantity" title="F=75" data-value="quantity:F=75">75F</span> here.',
+    },
+    {
+      description: "Celsius, convertToMetric is false (no change)",
+      input: "It's 22C here.",
+      convertToMetric: false,
+      expected:
+        'It\'s <span class="quantity" title="C=22" data-value="quantity:C=22">22C</span> here.',
     },
     // {
     //   description: "Number with comma 1,000 g",

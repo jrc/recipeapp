@@ -28,7 +28,12 @@ function createQuantityRegex(): RegExp {
   // Use the number pattern from parse-fraction to handle fractions, mixed numbers, etc.
   const numberPatternSource = createNumberPattern().source;
 
-  // Add word boundaries to prevent false matches (e.g., "8 g" in "8 garlic")
+  // Regex:
+  // 1. `(${numberPatternSource})`: Captures the numeric part (integer, decimal, fraction).
+  // 2. `\\s*`: Matches zero or more whitespace characters.
+  // 3. `(${allVariations.join("|")})`: Captures the unit string. Variations are sorted longest first
+  //    to ensure correct matching (e.g., "fl oz" before "oz"). Unit variations are regex-escaped.
+  // 4. `\\b`: Matches a word boundary to prevent partial matches within words (e.g., "8 g" in "8 garlic").
   const pattern = `(${numberPatternSource})\\s*(${allVariations.join("|")})\\b`;
   return new RegExp(pattern, "gi");
 }
@@ -36,22 +41,35 @@ function createQuantityRegex(): RegExp {
 const QUANTITY_REGEX = createQuantityRegex();
 
 /**
- * Matches quantities like "2 cups", "1.5 tsp", "1/2 cup" and renders them as HTML spans.
- * Handles fractions, mixed numbers, unicode fractions, and decimals.
+ * Matches quantities (e.g., \"2 cups\", \"70°F\") in text and renders them as HTML spans with metadata.
+ * Handles various number formats. Optionally converts US units (volume, mass, temperature) to metric.
  *
- * @param line Plain text
- * @param shouldConvertToMetric - if true, US units will be converted to metric with optimal unit selection
- * @param shouldRoundSatisfyingParam - if true, converted values will be rounded to satisfying numbers.
- *                                     If undefined and shouldConvertToMetric is true, defaults to true.
- *                                     Otherwise defaults to false or the provided value.
- * @returns HTML string with quantities wrapped in <span class="quantity">...</span>
+ * @param line The plain text line to process.
+ * @param shouldConvertToMetric If `true`, converts US units (volume, mass, temperature) to optimal metric
+ *   equivalents (e.g., cups to mL, °F to °C), displayed in parentheses. Defaults to `false`.
+ * @param shouldRoundSatisfyingParam Rounding for *converted metric values*. No effect if `shouldConvertToMetric` is `false`.
+ *   - `true`: Rounds to \"satisfying\" numbers (e.g., 118.295mL -> 120mL; 21.1°C -> 21°C).
+ *   - `false`: Celsius is displayed with one decimal (e.g., \"0.0°C\"); volume/mass use higher precision.
+ *   - `undefined` (default): Effectively `true` if `shouldConvertToMetric` is `true`.
+ * @returns An HTML string with recognized quantities wrapped in
+ *   `<span class=\"quantity\" title=\"UNIT_KEY=value\" data-value=\"quantity:UNIT_KEY=value\">original match</span>`.
+ *   If converted, a metric equivalent is appended:
+ *   `<span class=\"quantity-metric\" title=\"METRIC_UNIT_KEY=value\" data-value=\"quantity:METRIC_UNIT_KEY=value\">(metric value unit)</span>`.
  * @example
  * annotateQuantitiesAsHTML("Add 2 cups flour")
- * // Returns: 'Add <span class="quantity" title="US-CUP=2" data-value="quantity:US-CUP=2">2 cups</span> flour'
- * annotateQuantitiesAsHTML("Mix 1/2 cup milk", true)
- * // Returns: 'Mix <span class="quantity" title="US_CUP=0.5" data-value="quantity:US_CUP=0.5">1/2 cup</span> milk <span class="quantity-metric" title="METRIC_ML=120" data-value="quantity:METRIC_ML=120">(120 mL)</span>'
- * annotateQuantitiesAsHTML("Mix 1/2 cup milk", true, false)
- * // Returns: 'Mix <span class="quantity" title="US_CUP=0.5" data-value="quantity:US_CUP=0.5">1/2 cup</span> milk <span class="quantity-metric" title="METRIC_ML=118.295" data-value="quantity:METRIC_ML=118.295">(118.295 mL)</span>'
+ * // Returns: 'Add <span class="quantity" title="US_CUP=2" data-value="quantity:US_CUP=2">2 cups</span> flour'
+ *
+ * annotateQuantitiesAsHTML("Mix 1/2 cup milk", true) // Metric conversion, default satisfying rounding
+ * // Returns: 'Mix <span class="quantity" title="US_CUP=0.5" data-value="quantity:US_CUP=0.5">1/2 cup</span> <span class="quantity-metric" title="METRIC_ML=120" data-value="quantity:METRIC_ML=120">(120 ml)</span> milk'
+ *
+ * annotateQuantitiesAsHTML("Mix 1/2 cup milk", true, false) // Metric conversion, no satisfying rounding
+ * // Returns: 'Mix <span class="quantity" title="US_CUP=0.5" data-value="quantity:US_CUP=0.5">1/2 cup</span> <span class="quantity-metric" title="METRIC_ML=118.295" data-value="quantity:METRIC_ML=118.295">(118.295 ml)</span> milk'
+ *
+ * annotateQuantitiesAsHTML("It's 70°F today", true) // Temperature conversion, default satisfying rounding (70°F -> 21.11...°C -> 21°C)
+ * // Returns: 'It\'s <span class="quantity" title="F=70" data-value="quantity:F=70">70°F</span> <span class="quantity-metric" title="C=21" data-value="quantity:C=21">(21°C)</span> today'
+ *
+ * annotateQuantitiesAsHTML("Heat to 32°F", true, false) // Temp conversion, no satisfying rounding (32°F -> 0°C, displayed as 0.0°C)
+ * // Returns: 'Heat to <span class="quantity" title="F=32" data-value="quantity:F=32">32°F</span> <span class="quantity-metric" title="C=0" data-value="quantity:C=0">(0.0°C)</span>'
  */
 export function annotateQuantitiesAsHTML(
   line: string,
@@ -62,7 +80,6 @@ export function annotateQuantitiesAsHTML(
     const unitKey = UNIT_LOOKUP.get(unitString.toLowerCase());
 
     if (!unitKey) {
-      // Fallback - should not happen if our data is consistent
       return match;
     }
 
@@ -71,99 +88,118 @@ export function annotateQuantitiesAsHTML(
     );
 
     if (!originalUnit) {
-      // Fallback - should not happen if our data is consistent
       return match;
     }
 
     try {
-      // Use parseFraction to handle all number formats (fractions, mixed numbers, decimals, etc.)
       const originalValue = parseFraction(numberPart.trim());
 
-      let finalValue = originalValue;
-      let finalUnit = originalUnit;
+      let finalValue: number = originalValue; // For data attributes, should be numeric
+      let finalUnit: UnitDefinition = originalUnit;
+      let displayValueForMetricSpan: string | number = originalValue; // For display text in the metric span, e.g., "(120 ml)" or "(0.0°C)"
 
-      // Determine if rounding should actually be applied
       const applyRounding =
         shouldRoundSatisfyingParam === undefined
-          ? shouldConvertToMetric // Default: if converting to metric and not specified, then round.
-          : shouldRoundSatisfyingParam; // Otherwise, use the explicitly passed value.
+          ? shouldConvertToMetric
+          : shouldRoundSatisfyingParam;
 
       if (shouldConvertToMetric) {
-        // Skip conversion if already metric
-        if (originalUnit.key.startsWith("METRIC_")) {
-          // Already metric, no conversion needed
-          finalValue = originalValue;
-          finalUnit = originalUnit;
+        // Skip conversion if already a metric unit (e.g., "ml", "g", "°C")
+        if (originalUnit.type.startsWith("METRIC_")) {
+          // Unit is already metric; no conversion needed, all values remain original.
         } else {
-          // Convert to metric system
+          // Attempt conversion for non-metric units
           try {
-            // First convert to base metric unit
-            let baseMetricUnit: UnitDefinition;
-            if (originalUnit.to_l) {
-              baseMetricUnit = UNIT_DEFINITIONS.find(
-                (u) => u.key === "METRIC_L",
-              )!;
-            } else if (originalUnit.to_kg) {
-              baseMetricUnit = UNIT_DEFINITIONS.find(
-                (u) => u.key === "METRIC_KG",
-              )!;
-            } else {
-              // No conversion available
-              return match;
-            }
-
-            // Convert to base metric unit
-            const [baseValue, baseUnit] = convertMeasurement(
-              originalValue,
-              originalUnit,
-              baseMetricUnit,
-            );
-
-            // Find optimal unit for the converted value
-            const optimalUnit = getOptimalUnit(baseValue, baseUnit, "METRIC");
-
-            // Convert to optimal unit if different from base
-            if (optimalUnit.key !== baseUnit.key) {
-              const [optimalValue, optimalUnitResult] = convertMeasurement(
-                baseValue,
-                baseUnit,
-                optimalUnit,
+            if (originalUnit.type === "US_TEMPERATURE") {
+              const targetMetricUnit = getOptimalUnit(
+                originalValue,
+                originalUnit,
+                "METRIC",
               );
-              finalValue = optimalValue;
-              finalUnit = optimalUnitResult;
-            } else {
-              finalValue = baseValue;
-              finalUnit = baseUnit;
-            }
+              if (
+                targetMetricUnit &&
+                targetMetricUnit.type === "METRIC_TEMPERATURE"
+              ) {
+                const [convertedValue, convertedUnit] = convertMeasurement(
+                  originalValue,
+                  originalUnit,
+                  targetMetricUnit,
+                );
+                finalUnit = convertedUnit;
 
-            // Apply rounding if requested
-            if (applyRounding) {
-              finalValue = roundSatisfying(finalValue);
-            } else {
-              // Ensure consistent precision if not rounding "satisfyingly"
-              finalValue = parseFloat(finalValue.toFixed(7));
+                if (applyRounding) {
+                  finalValue = roundSatisfying(convertedValue);
+                  displayValueForMetricSpan = finalValue;
+                } else {
+                  // No satisfying rounding for Celsius:
+                  // For display in the span, format to exactly one decimal place (e.g., "0.0", "21.1").
+                  // For the 'data-value' attribute, use the numeric value.
+                  displayValueForMetricSpan = convertedValue.toFixed(1);
+                  finalValue = parseFloat(displayValueForMetricSpan as string);
+                }
+              }
+            } else if (originalUnit.to_l || originalUnit.to_kg) {
+              // US Volume or Mass to Metric
+              let baseMetricUnitKey = originalUnit.to_l
+                ? "METRIC_L"
+                : "METRIC_KG";
+              const baseMetricUnit = UNIT_DEFINITIONS.find(
+                (u) => u.key === baseMetricUnitKey,
+              )!;
+
+              const [baseValue, baseUnit] = convertMeasurement(
+                originalValue,
+                originalUnit,
+                baseMetricUnit,
+              );
+
+              const optimalUnit = getOptimalUnit(baseValue, baseUnit, "METRIC");
+
+              if (optimalUnit.key !== baseUnit.key) {
+                const [optimalValue, optimalUnitResult] = convertMeasurement(
+                  baseValue,
+                  baseUnit,
+                  optimalUnit,
+                );
+                finalValue = optimalValue;
+                finalUnit = optimalUnitResult;
+              } else {
+                finalValue = baseValue;
+                finalUnit = baseUnit;
+              }
+
+              if (applyRounding) {
+                finalValue = roundSatisfying(finalValue);
+              } else {
+                finalValue = parseFloat(finalValue.toFixed(7));
+              }
+              displayValueForMetricSpan = finalValue;
             }
+            // Unhandled US unit types (not Temperature, Volume, or Mass with to_l/to_kg) are not converted;
+            // values remain original.
           } catch (error) {
-            // If conversion fails, return original match
-            return match;
+            // On error during conversion attempt, original values are used,
+            // effectively showing only the original match without a metric span.
           }
         }
-      }
-
-      let quantityValue = `${originalUnit.key}=${originalValue}`;
-      let outHtml = `<span class="quantity" title="${quantityValue}" data-value="quantity:${quantityValue}">${match}</span>`;
-
-      if (shouldConvertToMetric && finalUnit.key !== originalUnit.key) {
-        // Show conversion in parentheses
-        quantityValue = `${finalUnit.key}=${finalValue}`;
-        outHtml += ` <span class="quantity-metric" title="${quantityValue}" data-value="quantity:${quantityValue}">(${finalValue} ${finalUnit.displayName})</span>`;
-        return outHtml;
       } else {
-        // No conversion or same unit
-        return outHtml;
+        // Not converting to metric, displayValueForMetricSpan is same as originalValue
+        displayValueForMetricSpan = originalValue;
       }
-    } catch {
-      // If parsing fails, return original match
+
+      let quantityValueForAttr = `${originalUnit.key}=${originalValue}`;
+      let outHtml = `<span class="quantity" title="${quantityValueForAttr}" data-value="quantity:${quantityValueForAttr}">${match}</span>`;
+
+      // Add metric span only if conversion happened and the unit actually changed
+      if (shouldConvertToMetric && finalUnit.key !== originalUnit.key) {
+        quantityValueForAttr = `${finalUnit.key}=${finalValue}`; // Use numeric finalValue for data attribute
+        // For temperature units like °C or °F, omit the space before the unit symbol.
+        const space = finalUnit.type.includes("TEMPERATURE") ? "" : " ";
+        outHtml += ` <span class="quantity-metric" title="${quantityValueForAttr}" data-value="quantity:${quantityValueForAttr}">(${displayValueForMetricSpan}${space}${finalUnit.displayName})</span>`;
+      }
+      return outHtml;
+    } catch (error) {
+      // If parsing numberPart fails, return original match
       return match;
     }
   });

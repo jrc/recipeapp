@@ -1,5 +1,4 @@
 - bookmarkable urls
-- Fahrenheit to Celsius
 - volume-to-mass conversion for butter/flour/sugar
 
 - Scale all quantities
