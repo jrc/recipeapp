@@ -25,7 +25,7 @@ async function handleImport(): Promise<void> {
 
   // We use a proxy because target recipe sites typically do not allow direct fetching.  // Use your deployed Cloudflare Worker as the proxy
   // const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
-  const proxyUrl = `https://wild-leaf-46a1.jrcplus.workers.dev/?url=${encodeURIComponent(targetUrl)}`;
+  const proxyUrl = `https://corsproxy.jrcplus.workers.dev/?url=${encodeURIComponent(targetUrl)}`;
 
   try {
     // The request is made to the proxy, which then fetches the content from the targetUrl.
