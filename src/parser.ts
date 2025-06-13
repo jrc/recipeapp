@@ -99,6 +99,24 @@ export function convertJsonLdToRecipeMarkdown(recipeJson: any): string {
 }
 
 /**
+ * Extracts the main recipe title (first H1) from markdown content.
+ * @param markdown The markdown string to parse.
+ * @returns The extracted title, or null if no H1 is found.
+ */
+export function getRecipeTitleFromMarkdown(markdown: string): string | null {
+  if (!markdown) return null;
+  const lines = markdown.split("\n");
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith("# ")) {
+      // Remove '# ' and trim any leading/trailing whitespace from the title itself
+      return trimmedLine.substring(2).trim();
+    }
+  }
+  return null; // No H1 found
+}
+
+/**
  * A basic markdown-to-HTML renderer.
  */
 export function markdownToHtml(markdown: string): string {

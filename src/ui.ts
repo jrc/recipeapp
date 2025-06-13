@@ -4,10 +4,22 @@
  */
 
 import { initializeTimers } from "./timer";
+import { getRecipeTitleFromMarkdown } from "./parser";
 
 // Module-level state for URL management
 let initialUrlFromQuery: string | null = null;
 let lastImportedUrl: string | null = null;
+
+// Document Title Management
+const DEFAULT_APP_TITLE = "Recipe App";
+
+function setDocumentTitle(recipeTitle: string | null): void {
+  if (recipeTitle && recipeTitle.trim() !== "") {
+    document.title = `${recipeTitle} | ${DEFAULT_APP_TITLE}`;
+  } else {
+    document.title = DEFAULT_APP_TITLE;
+  }
+}
 
 // A type definition for clarity
 export type TabId = "import" | "edit" | "view";
@@ -41,6 +53,7 @@ export function setInitialUrl(url: string | null): void {
   if (url) {
     elements.urlInput.value = url;
     initialUrlFromQuery = url;
+    lastImportedUrl = null; // Ensure initial URL param takes precedence
   }
   _updateImportButtonState(); // Update button based on initial value (from param or HTML default)
 }
@@ -49,6 +62,7 @@ export function setInitialUrl(url: string | null): void {
 export function notifyUrlImportSuccess(importedUrl: string): void {
   elements.urlInput.value = importedUrl;
   lastImportedUrl = importedUrl; // This now takes precedence
+  initialUrlFromQuery = null; // Clear any URL from initial page load
   _updateImportButtonState();
   // Browser URL will be updated by the subsequent switchToTab call in handleImport
 }
@@ -107,6 +121,13 @@ export function updateBrowserURL(): void {
     queryParams.set("url", urlToSetInBrowser);
   }
 
+  // Update document title based on the current recipe markdown
+  // This should happen regardless of whether the URL string itself changes,
+  // as the content (and thus the title) might be relevant even if the URL params are the same.
+  const recipeMarkdown = elements.editTextArea.value;
+  const recipeTitle = getRecipeTitleFromMarkdown(recipeMarkdown);
+  setDocumentTitle(recipeTitle);
+
   // Construct the new URL path with query parameters
   const newRelativePath = `${window.location.pathname}?${queryParams.toString()}`;
 
@@ -132,12 +153,21 @@ export function initializeUI(
 
   // Event listener for the URL input field
   elements.urlInput.addEventListener("input", () => {
-    // Only update the button state on input, do not change browser URL here.
+    initialUrlFromQuery = null; // Editing the URL input "dirties" the state
+    lastImportedUrl = null;
     _updateImportButtonState();
+    updateBrowserURL(); // Update URL, which will now lack the 'url' param
   });
 
   // The initial state of the import button is handled by setInitialUrl,
   // which is called in main.ts before initializeUI.
+
+  // Event listener for the recipe edit text area
+  elements.editTextArea.addEventListener("input", () => {
+    initialUrlFromQuery = null; // Editing the recipe content "dirties" the state
+    lastImportedUrl = null;
+    updateBrowserURL(); // Update URL, which will now lack the 'url' param
+  });
 
   // Handle form submission
   elements.importForm.addEventListener("submit", (event) => {

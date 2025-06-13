@@ -12,25 +12,17 @@ function handleTabSwitch(tabId: string): void {
   }
 }
 
-async function handleImport(): Promise<void> {
-  const targetUrl = ui.elements.urlInput.value.trim();
-  if (!targetUrl) return;
-
-  ui.elements.importButton.textContent = "Importing...";
-  ui.elements.importButton.disabled = true;
-
-  // CORS (Cross-Origin Resource Sharing) prevents browsers from fetching resources
-  // directly from another domain unless the server explicitly allows it.
-  // A CORS proxy acts as an intermediary, fetching the data server-side
-  // and returning it with headers that allow your browser to access it.
-
-  // We use a proxy because target recipe sites typically do not allow direct fetching.  // Use your deployed Cloudflare Worker as the proxy
-  // const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
-  const proxyUrl = `https://corsproxy.jrcplus.workers.dev/?url=${encodeURIComponent(targetUrl)}`;
-
+/**
+ * Processes the given URL to fetch, parse, and populate the recipe content.
+ * Does not handle UI changes like button text or tab switching.
+ * @param urlToProcess The URL of the recipe to process.
+ * @returns True if processing was successful, false otherwise.
+ */
+async function processRecipeUrl(urlToProcess: string): Promise<boolean> {
   try {
-    // The request is made to the proxy, which then fetches the content from the targetUrl.
-    const response = await fetch(proxyUrl);
+    const response = await fetch(
+      `https://corsproxy.jrcplus.workers.dev/?url=${encodeURIComponent(urlToProcess)}`,
+    );
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const html = await response.text();
@@ -53,25 +45,74 @@ async function handleImport(): Promise<void> {
     if (recipeJson) {
       const recipeMarkdown = parser.convertJsonLdToRecipeMarkdown(recipeJson);
       ui.elements.editTextArea.value = recipeMarkdown;
-      // Notify the UI module of the successful import, passing the original targetUrl
-      // This will update the URL input field, internal state, and the browser URL.
-      ui.notifyUrlImportSuccess(targetUrl);
-      ui.switchToTab("edit", handleTabSwitch, true);
+      return true;
     } else {
       const errorMessage =
         "Import failed: No Schema.org/Recipe JSON-LD data found on that page.";
       console.error(errorMessage);
       alert(errorMessage);
+      return false;
     }
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred.";
     console.error("Import failed:", errorMessage);
     alert(`Import failed: ${errorMessage}`);
+    return false;
+  }
+}
+
+/**
+ * Manages the full import cycle including UI updates, processing, and tab switching.
+ * @param url The URL to import.
+ * @param switchToEditOnSuccess If true, switches to the 'edit' tab upon successful import.
+ * @returns True if the import and processing were successful, false otherwise.
+ */
+async function manageFullImportCycle(
+  url: string,
+  switchToEditOnSuccess: boolean,
+): Promise<boolean> {
+  if (!url) {
+    // alert("Please enter a URL to import."); // Or rely on button disable state
+    return false;
+  }
+
+  ui.elements.importButton.textContent = "Importing...";
+  ui.elements.importButton.disabled = true;
+  let processingResult = false;
+
+  try {
+    processingResult = await processRecipeUrl(url);
+
+    if (processingResult) {
+      ui.notifyUrlImportSuccess(url); // Updates lastImportedUrl for URL sync
+
+      if (switchToEditOnSuccess) {
+        // This call will also trigger updateBrowserURL via switchToTab
+        ui.switchToTab("edit", handleTabSwitch, true);
+      } else {
+        // Auto-import: The initial tab is already active (silently).
+        // If the current active tab (which was set as initialTab) is "view",
+        // we need to render the newly imported content.
+        if (ui.getCurrentTabId() === "view") {
+          handleTabSwitch("view");
+        }
+        // Ensure browser URL reflects the imported recipe URL and the current (initial) tab.
+        ui.updateBrowserURL();
+      }
+    }
+  } catch (error) {
+    // This catch is mostly for unexpected errors in the cycle itself,
+    // as processRecipeUrl handles its own specific errors and alerts.
+    console.error("Error during import cycle management:", error);
+    processingResult = false; // Ensure it's marked as failed
   } finally {
     ui.elements.importButton.textContent = "Import";
-    ui.elements.importButton.disabled = false;
+    // Ensure button state is correct based on whether input has a URL
+    ui.elements.importButton.disabled =
+      ui.elements.urlInput.value.trim() === "";
   }
+  return processingResult;
 }
 
 // --- Initialization Function ---
@@ -100,9 +141,11 @@ async function initializeApp() {
     ui.initializeUI(handleTabSwitch);
 
     // Attach the main import logic to the button click
-    ui.elements.importButton.addEventListener("click", handleImport);
+    ui.elements.importButton.addEventListener("click", async () => {
+      await manageFullImportCycle(ui.elements.urlInput.value.trim(), true);
+    });
 
-    // Determine initial tab: from param, or 'import' if param is invalid/missing
+    // Determine initial tab: from param, or 'view' if param is invalid/missing
     let initialTab: TabId = "import"; // Default tab
     if (tabParam && ["import", "edit", "view"].includes(tabParam)) {
       initialTab = tabParam;
@@ -113,21 +156,21 @@ async function initializeApp() {
     // the third argument 'updateBrowserUrlOnSwitch' is false.
     ui.switchToTab(initialTab, handleTabSwitch, false);
 
-    // If the initial tab is 'view' and there's content in the_
-    // edit area (either from default HTML or potentially a future 'recipe data' param),
-    // ensure it's rendered.
-    if (initialTab === "view" && ui.elements.editTextArea.value.trim() !== "") {
-      handleTabSwitch("view");
-    }
-
     // If a URL was provided in the query parameters, attempt to import it automatically.
+    // The `manageFullImportCycle` function with `switchToEditOnSuccess: false` will handle
+    // calling `handleTabSwitch("view")` if needed and updating the browser URL.
     if (urlParam) {
-      // ui.elements.urlInput.value would have been set by ui.setInitialUrl(urlParam)
-      // if urlParam was present. handleImport reads from this input.
-      // We await this to ensure the import process (including potential UI updates
-      // like switching to the 'edit' tab) completes or errors out before
-      // the initializeApp function fully resolves.
-      await handleImport();
+      await manageFullImportCycle(urlParam, false);
+    } else {
+      // No URL param for auto-import.
+      // If the initial tab is 'view' and there's default content in the textarea
+      // (e.g., from the HTML), render it.
+      if (
+        initialTab === "view" &&
+        ui.elements.editTextArea.value.trim() !== ""
+      ) {
+        handleTabSwitch("view");
+      }
     }
   } catch (error) {
     console.error("Failed to initialize application:", error);
