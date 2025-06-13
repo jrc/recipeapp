@@ -4,3 +4,6 @@
 
 - share button
 - accept API key to add LLM-assisted editing
+    chunk ingredients
+    visually link ingredients to usage in ingredients
+    carefully add quantities
