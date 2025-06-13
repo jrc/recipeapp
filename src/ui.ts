@@ -24,6 +24,7 @@ export const elements = {
   renderedRecipeView: document.getElementById(
     "renderedRecipeView",
   ) as HTMLDivElement,
+  importForm: document.getElementById("import-form") as HTMLFormElement, // Added import form element
 };
 
 // Function to switch tabs
@@ -67,6 +68,16 @@ export function initializeUI(
   };
   elements.urlInput.addEventListener("input", updateImportButtonState);
   updateImportButtonState(); // Set initial state
+
+  // Handle form submission
+  elements.importForm.addEventListener("submit", (event) => {
+    event.preventDefault(); // Prevent the default form submission
+
+    // TODO: Implement the import logic here.  You can access the URL from
+    // elements.urlInput.value.
+
+    console.log("Importing:", elements.urlInput.value); // Placeholder
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

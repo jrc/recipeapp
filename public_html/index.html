@@ -19,12 +19,14 @@
                     <button class="tab-button" data-tab="view">View</button>
                 </div>
                 <div class="tab-content active" id="import">
-                    <input
-                        type="url"
-                        placeholder="Enter recipe URL"
-                        value="https://cooking.nytimes.com/recipes/1016062-red-lentil-soup"
-                    />
-                    <button>Import</button>
+                    <form id="import-form">
+                        <input
+                            type="url"
+                            placeholder="Enter recipe URL"
+                            value="https://cooking.nytimes.com/recipes/1016062-red-lentil-soup"
+                        />
+                        <button type="submit">Import</button>
+                    </form>
                 </div>
                 <div class="tab-content" id="edit">
                     <textarea rows="25">
