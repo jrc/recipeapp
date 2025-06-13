@@ -18,9 +18,17 @@ async function handleImport(): Promise<void> {
   ui.elements.importButton.textContent = "Importing...";
   ui.elements.importButton.disabled = true;
 
-  const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
+  // CORS (Cross-Origin Resource Sharing) prevents browsers from fetching resources
+  // directly from another domain unless the server explicitly allows it.
+  // A CORS proxy acts as an intermediary, fetching the data server-side
+  // and returning it with headers that allow your browser to access it.
+
+  // We use a proxy because target recipe sites typically do not allow direct fetching.  // Use your deployed Cloudflare Worker as the proxy
+  // const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
+  const proxyUrl = `https://wild-leaf-46a1.jrcplus.workers.dev/?url=${encodeURIComponent(targetUrl)}`;
 
   try {
+    // The request is made to the proxy, which then fetches the content from the targetUrl.
     const response = await fetch(proxyUrl);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
