@@ -1,4 +1,5 @@
 import * as ui from "./ui";
+import type { TabId } from "./ui";
 import * as parser from "./parser";
 import * as parseIngredient from "./parse-ingredient";
 
@@ -52,7 +53,10 @@ async function handleImport(): Promise<void> {
     if (recipeJson) {
       const recipeMarkdown = parser.convertJsonLdToRecipeMarkdown(recipeJson);
       ui.elements.editTextArea.value = recipeMarkdown;
-      ui.switchToTab("edit", handleTabSwitch);
+      // Notify the UI module of the successful import, passing the original targetUrl
+      // This will update the URL input field, internal state, and the browser URL.
+      ui.notifyUrlImportSuccess(targetUrl);
+      ui.switchToTab("edit", handleTabSwitch, true);
     } else {
       const errorMessage =
         "Import failed: No Schema.org/Recipe JSON-LD data found on that page.";
@@ -82,11 +86,49 @@ async function initializeApp() {
     const ingredientsText = await response.text();
     parseIngredient.loadIngredientDatabase(ingredientsText);
 
+    // Initialize state from URL query parameters
+    const queryParams = new URLSearchParams(window.location.search);
+    const urlParam = queryParams.get("url");
+    const tabParam = queryParams.get("tab") as TabId | null;
+
+    // Set the initial URL in the UI module. This populates the input field
+    // and lets the UI module know about this URL from the start.
+    // This function also handles the initial state of the import button.
+    ui.setInitialUrl(urlParam);
+
     // Set up all UI event listeners and pass our callback
     ui.initializeUI(handleTabSwitch);
 
     // Attach the main import logic to the button click
     ui.elements.importButton.addEventListener("click", handleImport);
+
+    // Determine initial tab: from param, or 'import' if param is invalid/missing
+    let initialTab: TabId = "import"; // Default tab
+    if (tabParam && ["import", "edit", "view"].includes(tabParam)) {
+      initialTab = tabParam;
+    }
+
+    // Switch to the initial tab.
+    // This first call to switchToTab will NOT update the browser URL because
+    // the third argument 'updateBrowserUrlOnSwitch' is false.
+    ui.switchToTab(initialTab, handleTabSwitch, false);
+
+    // If the initial tab is 'view' and there's content in the_
+    // edit area (either from default HTML or potentially a future 'recipe data' param),
+    // ensure it's rendered.
+    if (initialTab === "view" && ui.elements.editTextArea.value.trim() !== "") {
+      handleTabSwitch("view");
+    }
+
+    // If a URL was provided in the query parameters, attempt to import it automatically.
+    if (urlParam) {
+      // ui.elements.urlInput.value would have been set by ui.setInitialUrl(urlParam)
+      // if urlParam was present. handleImport reads from this input.
+      // We await this to ensure the import process (including potential UI updates
+      // like switching to the 'edit' tab) completes or errors out before
+      // the initializeApp function fully resolves.
+      await handleImport();
+    }
   } catch (error) {
     console.error("Failed to initialize application:", error);
     alert(
