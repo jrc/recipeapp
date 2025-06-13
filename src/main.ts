@@ -89,7 +89,7 @@ async function manageFullImportCycle(
 
       if (switchToEditOnSuccess) {
         // This call will also trigger updateBrowserURL via switchToTab
-        ui.switchToTab("edit", handleTabSwitch, true);
+        ui.switchToTab("edit", handleTabSwitch, url);
       } else {
         // Auto-import: The initial tab is already active (silently).
         // If the current active tab (which was set as initialTab) is "view",
@@ -98,7 +98,7 @@ async function manageFullImportCycle(
           handleTabSwitch("view");
         }
         // Ensure browser URL reflects the imported recipe URL and the current (initial) tab.
-        ui.updateBrowserURL();
+        ui.updateBrowserURL(url);
       }
     }
   } catch (error) {
@@ -153,8 +153,8 @@ async function initializeApp() {
 
     // Switch to the initial tab.
     // This first call to switchToTab will NOT update the browser URL because
-    // the third argument 'updateBrowserUrlOnSwitch' is false.
-    ui.switchToTab(initialTab, handleTabSwitch, false);
+    // the urlAction is 'no-update'.
+    ui.switchToTab(initialTab, handleTabSwitch, "no-update");
 
     // If a URL was provided in the query parameters, attempt to import it automatically.
     // The `manageFullImportCycle` function with `switchToEditOnSuccess: false` will handle
