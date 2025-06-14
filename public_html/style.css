@@ -22,9 +22,8 @@ main {
     border-radius: 8px;
     padding: 1em;
 
-    /* Keep it narrow and centered */
     max-width: 55ch;
-    margin: 1em auto 0 auto;
+    margin: 2em auto 0 auto;
 }
 
 .feature-item {
@@ -32,8 +31,7 @@ main {
     font-size: small;
 }
 
-/* Text styles remain the same */
-.feature-item h3 {
+.feature-item h4 {
     font-weight: 600;
     color: rgb(33, 37, 41);
     margin-top: 0;
