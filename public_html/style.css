@@ -11,7 +11,7 @@ main {
     }
 
     #import {
-        padding: 2em;
+        padding: 1em 2em;
     }
 }
 
@@ -66,6 +66,10 @@ main {
 }
 
 #import button {
+    /* Layout */
+    display: block;
+    margin: auto;
+
     /* Metrics */
     padding: var(--padding-base-vertical) var(--padding-base-horizontal);
     border-radius: var(--border-radius-base);
