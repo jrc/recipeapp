@@ -2,8 +2,8 @@
 
 - Scale all quantities
 
-- share button
 - accept API key to add LLM-assisted editing
-    chunk ingredients
-    visually link ingredients to usage in ingredients
-    carefully add quantities
+    - chunk ingredients
+    - visually link ingredients to usage in ingredients
+    - Putting the amounts in the instructions (carefully)
+    - splitting up overlong steps
