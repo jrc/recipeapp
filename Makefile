@@ -10,7 +10,7 @@ all: build
 clean:
 	@echo "Cleaning dist folder..."
 	rm -rf dist
-	rm -r node_modules package.json package-lock.json
+	rm -rf node_modules package.json package-lock.json
 
 # Target to build the static dist folder
 build: clean
