@@ -1,6 +1,13 @@
 /**
  * ui.ts
  * Handles all direct DOM manipulation and UI event logic.
+ *
+ * URL Management Behavior:
+ * - URL input field is the source of truth for the browser URL
+ * - Browser URL mirrors the URL input field (when non-empty)
+ * - URL is cleared when user edits the recipe content (document becomes "dirty")
+ * - Initial load has clean URL (no parameters) since input starts empty
+ * - Import tab is the default (no tab parameter needed), only edit/view tabs set parameters
  */
 
 import { initializeTimers } from "./timer";
@@ -56,18 +63,14 @@ export function setInitialUrl(url: string | null): void {
 export function notifyUrlImportSuccess(importedUrl: string): void {
   elements.urlInput.value = importedUrl;
   _updateImportButtonState();
-  // Browser URL will be updated by the subsequent switchToTab call in handleImport
+  // Browser URL will be updated automatically since URL input changed
 }
 
 // Function to switch tabs
 export function switchToTab(
   tabId: TabId,
   onTabSwitch?: (tabId: TabId) => void,
-  // urlToSet:
-  // - undefined (parameter omitted): Don't change the browser URL.
-  // - null: Clear the 'url' query parameter.
-  // - string: Set the 'url' query parameter to this value.
-  urlToSet?: string | null,
+  shouldUpdateUI: boolean = true,
 ): void {
   elements.tabButtons.forEach((btn) => btn.classList.remove("active"));
   elements.tabContents.forEach((content) => content.classList.remove("active"));
@@ -81,9 +84,9 @@ export function switchToTab(
     buttonToActivate.classList.add("active");
     contentToActivate.classList.add("active");
 
-    if (urlToSet !== undefined) {
-      // Only update URL if explicitly requested
-      updateBrowserURL(urlToSet);
+    // Update browser URL to reflect current tab and URL input and also document title
+    if (shouldUpdateUI) {
+      updateBrowserURL();
     }
 
     if (onTabSwitch) {
@@ -101,48 +104,42 @@ export function getCurrentTabId(): TabId {
 }
 
 // Function to update the browser URL with current state (recipe URL and active tab)
-// urlToSet:
-// - string: Set the 'url' query parameter to this value.
-// - null: Clear the 'url' query parameter.
-// - undefined: Preserve current 'url' parameter from window.location.search.
-export function updateBrowserURL(urlToSet?: string | null): void {
+// The URL input field is the source of truth - browser URL mirrors it when non-empty
+export function updateBrowserURL(): void {
   const activeTabId = getCurrentTabId();
   const queryParams = new URLSearchParams();
 
-  // Always set the tab parameter
-  queryParams.set("tab", activeTabId);
-
-  // Determine URL parameter based on intent:
-  // - undefined: preserve current URL param from browser
-  // - null: clear URL param
-  // - string: set URL param to this value
-  let urlToSetInBrowser: string | null = null;
-  if (urlToSet === undefined) {
-    // Preserve current URL param if it exists
-    const currentParams = new URLSearchParams(window.location.search);
-    urlToSetInBrowser = currentParams.get("url");
-  } else if (urlToSet !== null) {
-    urlToSetInBrowser = urlToSet;
+  // Only set tab parameter for non-import tabs (import is the default)
+  if (activeTabId !== "import") {
+    queryParams.set("tab", activeTabId);
   }
-  // If urlToSet is null, urlToSetInBrowser stays null (clears param)
 
-  // Only add the 'url' parameter if we have a value for it
-  if (urlToSetInBrowser) {
-    queryParams.set("url", urlToSetInBrowser);
+  // Mirror the URL input field value in the browser URL
+  const urlInputValue = elements.urlInput.value.trim();
+  if (urlInputValue) {
+    queryParams.set("url", urlInputValue);
   }
 
   // Update document title based on the current recipe markdown
-  // This should happen regardless of whether the URL string itself changes,
-  // as the content (and thus the title) might be relevant even if the URL params are the same.
   const recipeMarkdown = elements.editTextArea.value;
   const recipeTitle = getRecipeTitleFromMarkdown(recipeMarkdown);
   setDocumentTitle(recipeTitle);
 
   // Construct the new URL path with query parameters
-  const newRelativePath = `${window.location.pathname}?${queryParams.toString()}`;
+  const queryString = queryParams.toString();
+  let newRelativePath;
+
+  // Only include the query string if it's not empty
+  if (queryString) {
+    newRelativePath = `${window.location.pathname}?${queryString}`;
+  } else {
+    // If no parameters, just use the path to avoid trailing "?"
+    newRelativePath = window.location.pathname;
+  }
 
   // Update only if the new path is different to avoid unnecessary history entries
-  // or potential issues with replaceState.
+  // Compare against the current path including search to handle cases where
+  // the existing URL has params and the new one should have none.
   if (window.location.pathname + window.location.search !== newRelativePath) {
     window.history.replaceState({}, "", newRelativePath);
   }
@@ -156,19 +153,24 @@ export function initializeUI(
     button.addEventListener("click", () => {
       const tab = button.getAttribute("data-tab") as TabId;
       if (tab) {
-        // When user clicks a tab, don't change URL (urlToSet is undefined)
-        switchToTab(tab, onTabSwitchCallback);
+        switchToTab(tab, onTabSwitchCallback, true);
       }
     });
   });
 
-  elements.urlInput.addEventListener("input", () => {
+  // URL input field is the source of truth - update browser URL to match
+  // Use 'change' instead of 'input' to avoid noisy URL updates while typing
+  elements.urlInput.addEventListener("change", () => {
     _updateImportButtonState();
-    updateBrowserURL(null); // Clear URL param when user edits input
+    elements.editTextArea.value = ""; // Clear textarea when URL changes
+    updateBrowserURL(); // Mirror URL input field in browser URL
   });
 
+  // Clear URL when user edits content (document becomes "dirty")
   elements.editTextArea.addEventListener("input", () => {
-    updateBrowserURL(null); // Clear URL param when user edits content
+    elements.urlInput.value = ""; // Clear URL input (source of truth)
+    _updateImportButtonState();
+    updateBrowserURL(); // This will clear the browser URL since input is now empty
   });
 
   elements.importForm.addEventListener("submit", (event) => {

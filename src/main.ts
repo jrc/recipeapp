@@ -89,7 +89,7 @@ async function manageFullImportCycle(
 
       if (switchToDefaultViewOnSuccess) {
         // This is for manual import: switch to "view" and set the URL.
-        ui.switchToTab("view", handleTabSwitch, url); // url is string -> set URL
+        ui.switchToTab("view", handleTabSwitch, true);
         // Explicitly render the view tab with new content,
         // as switchToTab's callback might not fire if already on "view".
         handleTabSwitch("view");
@@ -101,7 +101,7 @@ async function manageFullImportCycle(
           handleTabSwitch("view");
         }
         // Update the browser URL to include the imported 'url' and current 'initialTab'.
-        ui.updateBrowserURL(url);
+        ui.updateBrowserURL();
       }
     }
   } catch (error) {
@@ -157,7 +157,7 @@ async function initializeApp() {
     // Switch to the initial tab.
     // This first call to switchToTab will NOT update the browser URL because
     // urlToSet is undefined (no change mode).
-    ui.switchToTab(initialTab, handleTabSwitch);
+    ui.switchToTab(initialTab, handleTabSwitch, false);
 
     // If a URL was provided in the query parameters, attempt to import it automatically.
     // The `manageFullImportCycle` function with `switchToEditOnSuccess: false` will handle
