@@ -50,7 +50,8 @@ function testCreateRegExpFromIngredientPattern() {
 // Test emphasizeIngredients function
 function testHighlightIngredients() {
   // Initialize with test ingredients
-  const testIngredients = "gorgonzola [cheese]\nalmond~\nred pepper flakes";
+  const testIngredients =
+    "gorgonzola [cheese]\nalmond~\nred pepper flakes".split("\n");
   loadIngredientDatabase(testIngredients);
 
   // Test basic highlighting

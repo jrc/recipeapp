@@ -2,7 +2,7 @@ import * as ui from "./ui";
 import type { TabId } from "./ui";
 import * as parser from "./parser";
 import * as parseIngredient from "./parse-ingredient";
-import { INGREDIENTS_EN } from "./ingredients-en";
+import INGREDIENTS_EN from "./ingredients-en.json";
 
 function handleTabSwitch(tabId: string): void {
   if (tabId === "view") {
@@ -93,6 +93,10 @@ async function manageFullImportCycle(
 }
 
 async function initializeApp() {
+  console.assert(
+    INGREDIENTS_EN && INGREDIENTS_EN.length > 0,
+    "Ingredient database is not loaded",
+  );
   parseIngredient.loadIngredientDatabase(INGREDIENTS_EN);
 
   const queryParams = new URLSearchParams(window.location.search);

@@ -7,19 +7,20 @@
 let ingredientPatterns: RegExp[] = [];
 
 /**
- * Initializes the parser with ingredient patterns. Must be called on startup.
- * @param ingredientsText The raw text content from ingredients.txt.
+ * Initializes the parser with ingredient patterns from an array of strings.
+ * Filters out empty lines and comments, trims whitespace, and sorts patterns
+ * by length descending before compiling them into regular expressions.
+ * Must be called on startup.
+ * @param ingredientStrings Array of raw ingredient pattern strings.
  */
-export function loadIngredientDatabase(ingredientsText: string) {
-  ingredientPatterns = createIngredientRegexes(ingredientsText);
-}
-
-/**
- * Initializes the parser with pre-processed ingredient patterns.
- * @param ingredientPatterns Array of ingredient pattern strings, already sorted by length.
- */
-export function loadPreprocessedIngredients(patterns: string[]) {
-  ingredientPatterns = patterns.map(createRegExpFromIngredientPattern);
+export function loadIngredientDatabase(ingredientStrings: string[]) {
+  ingredientPatterns = ingredientStrings
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
+    // IMPORTANT: Sort by length descending to match longer phrases first
+    // (e.g., "gorgonzola cheese" before just "cheese")
+    .sort((a, b) => b.length - a.length)
+    .map(createRegExpFromIngredientPattern);
 }
 
 export function createRegExpFromIngredientPattern(pattern: string): RegExp {
@@ -40,19 +41,6 @@ export function createRegExpFromIngredientPattern(pattern: string): RegExp {
   // Use word boundaries `\b` to match whole words only.
   // `i` flag for case-insensitivity
   return new RegExp(`\\b(${processedPattern})\\b`, "i");
-}
-
-function createIngredientRegexes(ingredientsText: string): RegExp[] {
-  return (
-    ingredientsText
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith("#"))
-      // IMPORTANT: Sort by length descending to match longer phrases first
-      // (e.g., "gorgonzola cheese" before just "cheese")
-      .sort((a, b) => b.length - a.length)
-      .map(createRegExpFromIngredientPattern)
-  );
 }
 
 /**
