@@ -14,6 +14,14 @@ export function loadIngredientDatabase(ingredientsText: string) {
   ingredientPatterns = createIngredientRegexes(ingredientsText);
 }
 
+/**
+ * Initializes the parser with pre-processed ingredient patterns.
+ * @param ingredientPatterns Array of ingredient pattern strings, already sorted by length.
+ */
+export function loadPreprocessedIngredients(patterns: string[]) {
+  ingredientPatterns = patterns.map(createRegExpFromIngredientPattern);
+}
+
 export function createRegExpFromIngredientPattern(pattern: string): RegExp {
   let processedPattern = pattern.trim();
 

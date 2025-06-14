@@ -2,6 +2,7 @@ import * as ui from "./ui";
 import type { TabId } from "./ui";
 import * as parser from "./parser";
 import * as parseIngredient from "./parse-ingredient";
+import { INGREDIENTS_EN } from "./ingredients-en";
 
 function handleTabSwitch(tabId: string): void {
   if (tabId === "view") {
@@ -92,47 +93,32 @@ async function manageFullImportCycle(
 }
 
 async function initializeApp() {
-  try {
-    const response = await fetch("ingredients-en.txt");
-    if (!response.ok) {
-      throw new Error("Failed to load ingredients.txt");
+  parseIngredient.loadIngredientDatabase(INGREDIENTS_EN);
+
+  const queryParams = new URLSearchParams(window.location.search);
+  const urlParam = queryParams.get("url");
+  const tabParam = queryParams.get("tab") as TabId | null;
+
+  ui.setInitialUrl(urlParam);
+  ui.initializeUI(handleTabSwitch);
+
+  ui.elements.importButton.addEventListener("click", async () => {
+    await manageFullImportCycle(ui.elements.urlInput.value.trim(), true);
+  });
+
+  let initialTab: TabId = "import";
+  if (tabParam && ["import", "edit", "view"].includes(tabParam)) {
+    initialTab = tabParam;
+  }
+
+  ui.switchToTab(initialTab, handleTabSwitch, false);
+
+  if (urlParam) {
+    await manageFullImportCycle(urlParam, false);
+  } else {
+    if (initialTab === "view" && ui.elements.editTextArea.value.trim() !== "") {
+      handleTabSwitch("view");
     }
-    const ingredientsText = await response.text();
-    parseIngredient.loadIngredientDatabase(ingredientsText);
-
-    const queryParams = new URLSearchParams(window.location.search);
-    const urlParam = queryParams.get("url");
-    const tabParam = queryParams.get("tab") as TabId | null;
-
-    ui.setInitialUrl(urlParam);
-    ui.initializeUI(handleTabSwitch);
-
-    ui.elements.importButton.addEventListener("click", async () => {
-      await manageFullImportCycle(ui.elements.urlInput.value.trim(), true);
-    });
-
-    let initialTab: TabId = "import";
-    if (tabParam && ["import", "edit", "view"].includes(tabParam)) {
-      initialTab = tabParam;
-    }
-
-    ui.switchToTab(initialTab, handleTabSwitch, false);
-
-    if (urlParam) {
-      await manageFullImportCycle(urlParam, false);
-    } else {
-      if (
-        initialTab === "view" &&
-        ui.elements.editTextArea.value.trim() !== ""
-      ) {
-        handleTabSwitch("view");
-      }
-    }
-  } catch (error) {
-    console.error("Failed to initialize application:", error);
-    alert(
-      "Could not initialize the application. Please ensure ingredients-en.txt is available and reload the page.",
-    );
   }
 }
 initializeApp();

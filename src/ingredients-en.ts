@@ -1,20 +1,29 @@
-# Patterns for Matching Ingredient Names
+/**
+ * Ingredient patterns for matching ingredient names
+ *
+ * Pattern Syntax:
+ * 1. Direct Word/Phrase Matching: Words and phrases are listed directly, space-separated.
+ * 2. Case-Insensitive: All matching is case-insensitive.
+ * 3. Optional Words ([word]): Enclosing a word in square brackets makes it optional.
+ * 4. Plural Matching (word~): A ~ after a word indicates it should also match by its plural form.
+ */
+export const INGREDIENTS_EN = `# Patterns for Matching Ingredient Names
 #
 # 1. Direct Word/Phrase Matching:
 #    - Words and phrases are listed directly, space-separated.
-#    - Example: `goat cheese` matches the phrase "goat cheese".
+#    - Example: \`goat cheese\` matches the phrase "goat cheese".
 #
 # 2. Case-Insensitive:
 #    - All matching is case-insensitive.
-#    - Example: `gorgonzola cheese` matches "Gorgonzola Cheese" or "gorgonzola cheese".
+#    - Example: \`gorgonzola cheese\` matches "Gorgonzola Cheese" or "gorgonzola cheese".
 #
-# 3. Optional Words (`[word]`):
+# 3. Optional Words (\`[word]\`):
 #    - Enclosing a word in square brackets makes it optional.
-#    - Example: `gorgonzola [cheese]` matches "gorgonzola" or "gorgonzola cheese".
+#    - Example: \`gorgonzola [cheese]\` matches "gorgonzola" or "gorgonzola cheese".
 #
-# 4. Plural Matching (`word~`):
-#    - A `~` after a word indicates it should also match by its plural form.
-#    - Example: `almond~` matches "almond" or "almonds".
+# 4. Plural Matching (\`word~\`):
+#    - A \`~\` after a word indicates it should also match by its plural form.
+#    - Example: \`almond~\` matches "almond" or "almonds".
 
 abalone
 agar
@@ -525,4 +534,4 @@ yellow wax bean~
 yogurt
 yuzu
 zest
-zucchini
+zucchini`;
