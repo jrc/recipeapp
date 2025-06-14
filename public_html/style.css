@@ -9,6 +9,79 @@ main {
         max-width: 85ch;
         padding: 2ch;
     }
+
+    #import {
+        padding: 2em;
+    }
+}
+
+/* Feature list */
+
+.feature-section {
+    background-color: #f5faff;
+    border-radius: 8px;
+    padding: 1em;
+
+    /* Keep it narrow and centered */
+    max-width: 55ch;
+    margin: 1em auto 0 auto;
+}
+
+.feature-item {
+    padding: 0.5em 0;
+    font-size: small;
+}
+
+/* Text styles remain the same */
+.feature-item h3 {
+    font-weight: 600;
+    color: rgb(33, 37, 41);
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+
+.feature-item p {
+    line-height: 1.5;
+    color: rgb(73, 80, 87);
+    margin: 0;
+}
+
+/* Main UI */
+
+#import input[type="url"] {
+    /* Layout */
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+
+    /* Metrics */
+    padding: 6px 12px;
+    font-size: var(--font-size-base);
+    line-height: 24px;
+
+    /* Appearance */
+    border: var(--border-width-base) var(--border-style-base) rgb(206, 212, 218);
+    border-radius: var(--border-radius-base);
+    color: var(--dark-gray);
+}
+
+#import button {
+    /* Metrics */
+    padding: var(--padding-base-vertical) var(--padding-base-horizontal);
+    border-radius: var(--border-radius-base);
+    font-size: var(--font-size-base);
+
+    /* Appearance */
+    background-color: var(--primary-blue);
+    border: var(--border-width-base) var(--border-style-base) transparent;
+    color: var(--white);
+
+    /* Behavior */
+    cursor: pointer;
+}
+
+#import button:disabled {
+    background-color: rgb(108, 117, 125);
 }
 
 #edit textarea {
