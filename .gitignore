@@ -3,3 +3,8 @@
 .ropeproject
 
 dist/
+
+# We don't use node, except when Claude is debugging
+package.json
+package-lock.json
+node_modules
