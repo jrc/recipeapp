@@ -27,7 +27,7 @@ export function convertJsonLdToRecipeMarkdown(recipeJson: any): string {
     else if (Array.isArray(recipeJson.image)) {
       const firstImage = recipeJson.image[0];
       if (typeof firstImage === "string") imageUrl = firstImage;
-      else if (typeof firstImage === "object" && firstImage.url)
+      else if (firstImage && typeof firstImage === "object" && firstImage.url)
         imageUrl = firstImage.url;
     } else if (typeof recipeJson.image === "object" && recipeJson.image.url) {
       imageUrl = recipeJson.image.url;

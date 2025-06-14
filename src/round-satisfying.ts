@@ -5,16 +5,12 @@
  * multiplied by the appropriate power of 10, then return the closest candidate
  * to the input that falls within the tolerance bounds.
  *
- * Why this approach: Simply using the first valid factor produces wrong results.
  * For example, 3.11 with 5% tolerance could round to 3 (factor 1.0) or 3.1
  * (factor 0.1). Since 3.1 is closer to 3.11, we must evaluate all factors.
  *
  * Examples: 1.23 → 1.25, 3.11 → 3.1, 998 → 1000, 2/3 → 0.67
  */
 export function roundSatisfying(x: number, tolerance: number = 0.05): number {
-  if (x == null) {
-    throw new Error("x cannot be null or undefined");
-  }
   if (x < 0.0) {
     throw new Error("x must be >= 0.0");
   }
