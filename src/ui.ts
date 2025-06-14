@@ -5,6 +5,7 @@
 
 import { initializeTimers } from "./timer";
 import { getRecipeTitleFromMarkdown } from "./parser";
+import { acquireWakeLock, releaseWakeLock } from "./wakelock";
 
 // Document Title Management
 const DEFAULT_APP_TITLE = "Recipe App";
@@ -67,6 +68,12 @@ export function switchToTab(
 
   if (shouldUpdateUI) {
     updateBrowserURL();
+  }
+
+  if (tabId === "view") {
+    acquireWakeLock();
+  } else {
+    releaseWakeLock();
   }
 
   if (onTabSwitch) {
@@ -134,6 +141,9 @@ export function initializeUI(
   elements.importForm.addEventListener("submit", (event) => {
     event.preventDefault();
   });
+
+  // Release wake lock when the page is closed or navigated away
+  window.addEventListener("beforeunload", releaseWakeLock);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
