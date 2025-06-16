@@ -80,20 +80,9 @@ A classic way to brew a clean and flavorful cup of coffee.
 6.  Let all water drip through. This takes 1–2 minutes.
 7.  Enjoy your coffee!
                     </textarea>
-                    <details id="llm-tools-details" style="margin-top: 2em">
+                    <details id="ai-assistance-details" style="margin-top: 1em">
                         <summary>✨ AI Assistance</summary>
                         <div class="llm-tool-section" style="padding-top: 10px">
-                            <div style="margin-bottom: 10px">
-                                <label for="llm-api-key">Gemini API Key:</label>
-                                <input
-                                    type="text"
-                                    id="gemini-api-key"
-                                    name="gemini-api-key"
-                                    placeholder="Enter your Gemini API key"
-                                    style="font-family: monospace"
-                                    size="40"
-                                />
-                            </div>
                             <div style="margin-bottom: 10px">
                                 <label for="llm-prompt">Prompt:</label>
                                 <input
@@ -113,6 +102,68 @@ A classic way to brew a clean and flavorful cup of coffee.
                             </button>
                         </div>
                     </details>
+                    <details id="settings-details" style="margin-top: 1em">
+                        <summary>Settings</summary>
+                        <div class="llm-tool-section" style="padding-top: 10px">
+                            <div style="margin-bottom: 10px">
+                                <label for="llm-api-key">Gemini API Key:</label>
+                                <input
+                                    type="text"
+                                    id="gemini-api-key"
+                                    name="gemini-api-key"
+                                    placeholder="Enter your Gemini API key"
+                                    style="font-family: monospace"
+                                    size="40"
+                                />
+                                <small
+                                    >(<a
+                                        href="https://aistudio.google.com/app/apikey"
+                                        >need an API key?</a
+                                    >)</small
+                                >
+                            </div>
+                        </div>
+                    </details>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", () => {
+                            const apiKeyInput =
+                                document.getElementById("gemini-api-key");
+                            const aiAssistanceDetails = document.getElementById(
+                                "ai-assistance-details",
+                            );
+                            const promptInput =
+                                document.getElementById("llm-prompt");
+                            const submitButton =
+                                document.getElementById("llm-submit-button");
+
+                            const updateAIState = () => {
+                                const apiKey = apiKeyInput.value.trim();
+                                const isEnabled = apiKey !== "";
+
+                                promptInput.disabled = !isEnabled;
+                                submitButton.disabled = !isEnabled;
+
+                                // Add a visual cue to the details summary/content when disabled
+                                aiAssistanceDetails.style.opacity = isEnabled
+                                    ? ""
+                                    : "0.6";
+                            };
+
+                            // Initial state update
+                            updateAIState();
+
+                            // Update state when API key changes
+                            apiKeyInput.addEventListener(
+                                "input",
+                                updateAIState,
+                            );
+
+                            // Auto-open AI Assistance if key is present on load
+                            if (apiKeyInput.value.trim() !== "") {
+                                aiAssistanceDetails.open = true;
+                            }
+                        });
+                    </script>
                 </div>
                 <div class="tab-content" id="view">
                     <div id="renderedRecipeView">

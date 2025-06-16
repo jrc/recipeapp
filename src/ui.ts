@@ -12,7 +12,6 @@ import {
   transformRecipeWithLLM,
 } from "./llm";
 
-// Document Title Management
 const DEFAULT_APP_TITLE = "Recipe App";
 
 function setDocumentTitle(recipeTitle: string | null): void {
@@ -40,16 +39,15 @@ export const elements = {
     "renderedRecipeView",
   ) as HTMLDivElement,
   importForm: document.getElementById("import-form") as HTMLFormElement,
-  geminiApiKeyInput: document.getElementById(
-    "gemini-api-key",
-  ) as HTMLInputElement,
   llmPromptInput: document.getElementById("llm-prompt") as HTMLInputElement,
   llmSubmitButton: document.getElementById(
     "llm-submit-button",
   ) as HTMLButtonElement,
-  // llmErrorMessage element was removed as it's no longer in index.html
-  llmToolsDetails: document.getElementById(
-    "llm-tools-details",
+  geminiApiKeyInput: document.getElementById(
+    "gemini-api-key",
+  ) as HTMLInputElement,
+  settingsDetails: document.getElementById(
+    "settings-details",
   ) as HTMLDetailsElement,
 };
 
@@ -133,14 +131,11 @@ export function updateBrowserURL(): void {
 export function initializeUI(
   onTabSwitchCallback: (tabId: TabId) => void,
 ): void {
-  // The block for initializing LLMErrorDisplay was removed as the element and function are gone.
-
   // Load saved Gemini API key
   if (elements.geminiApiKeyInput) {
     const savedApiKey = getGeminiApiKey();
     if (savedApiKey) {
       elements.geminiApiKeyInput.value = savedApiKey;
-      elements.llmToolsDetails.open = true;
     }
     elements.geminiApiKeyInput.addEventListener("change", () => {
       setGeminiApiKey(elements.geminiApiKeyInput.value);
@@ -181,18 +176,15 @@ export function initializeUI(
       const prompt = elements.llmPromptInput.value;
       const recipeContent = elements.editTextArea.value;
 
-      if (!prompt.trim()) {
-        alert("Please enter a prompt for the LLM.");
-        elements.llmPromptInput.focus();
-        return;
-      }
-      if (!apiKey.trim() && !getGeminiApiKey()) {
-        // Check input field or stored value
-        alert("Please enter your Gemini API Key.");
-        elements.geminiApiKeyInput.focus();
-        if (elements.llmToolsDetails && !elements.llmToolsDetails.open) {
-          elements.llmToolsDetails.open = true;
-        }
+      console.assert(
+        prompt.trim() !== "",
+        "Submit clicked with empty prompt but button should have been disabled",
+      );
+      console.assert(
+        apiKey.trim() !== "",
+        "Submit clicked with empty API key but button should have been disabled",
+      );
+      if (!prompt.trim() || (!apiKey.trim() && !getGeminiApiKey())) {
         return;
       }
 
@@ -202,7 +194,7 @@ export function initializeUI(
 
       try {
         const transformedRecipe = await transformRecipeWithLLM(
-          apiKey || getGeminiApiKey() || "", // Use field value or stored value
+          apiKey,
           prompt,
           recipeContent,
         );
@@ -212,8 +204,8 @@ export function initializeUI(
       } catch (error) {
         console.error("LLM transformation failed:", error);
       } finally {
-        elements.llmPromptInput.disabled = false; // Re-enable prompt after processing
-        elements.llmPromptInput.value = ""; // Clear the prompt input
+        elements.llmPromptInput.disabled = false;
+        elements.llmPromptInput.value = "";
         elements.llmSubmitButton.disabled = false;
         elements.llmSubmitButton.textContent = "Submit";
         updateSubmitButtonState();
