@@ -6,6 +6,12 @@
 import { initializeTimers } from "./timer";
 import { getRecipeTitleFromMarkdown } from "./parser";
 import { acquireWakeLock, releaseWakeLock } from "./wakelock";
+import {
+  getGeminiApiKey,
+  setGeminiApiKey,
+  transformRecipeWithLLM,
+  // initializeLLMErrorDisplay was removed here
+} from "./llm";
 
 // Document Title Management
 const DEFAULT_APP_TITLE = "Recipe App";
@@ -35,6 +41,17 @@ export const elements = {
     "renderedRecipeView",
   ) as HTMLDivElement,
   importForm: document.getElementById("import-form") as HTMLFormElement,
+  geminiApiKeyInput: document.getElementById(
+    "gemini-api-key",
+  ) as HTMLInputElement,
+  llmPromptTextarea: document.getElementById("llm-prompt") as HTMLInputElement,
+  llmSubmitButton: document.getElementById(
+    "llm-submit-button",
+  ) as HTMLButtonElement,
+  // llmErrorMessage element was removed as it's no longer in index.html
+  llmToolsDetails: document.getElementById(
+    "llm-tools-details",
+  ) as HTMLDetailsElement,
 };
 
 // Called from main.ts to set the URL from a query parameter
@@ -117,6 +134,93 @@ export function updateBrowserURL(): void {
 export function initializeUI(
   onTabSwitchCallback: (tabId: TabId) => void,
 ): void {
+  // The block for initializing LLMErrorDisplay was removed as the element and function are gone.
+
+  // Load saved Gemini API key
+  if (elements.geminiApiKeyInput) {
+    const savedApiKey = getGeminiApiKey();
+    if (savedApiKey) {
+      elements.geminiApiKeyInput.value = savedApiKey;
+    }
+    elements.geminiApiKeyInput.addEventListener("change", () => {
+      setGeminiApiKey(elements.geminiApiKeyInput.value);
+    });
+  }
+
+  // LLM submit button event listener and prompt input handling
+  if (
+    elements.llmSubmitButton &&
+    elements.geminiApiKeyInput &&
+    elements.llmPromptTextarea &&
+    elements.editTextArea
+  ) {
+    const updateSubmitButtonState = () => {
+      elements.llmSubmitButton.disabled =
+        elements.llmPromptTextarea.value.trim() === "";
+    };
+
+    // Set initial state of the submit button
+    updateSubmitButtonState();
+
+    // Update button state on prompt input
+    elements.llmPromptTextarea.addEventListener(
+      "input",
+      updateSubmitButtonState,
+    );
+
+    // Handle "Enter" key in prompt input
+    elements.llmPromptTextarea.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault(); // Prevent default action (e.g., newline in textarea or form submission)
+        if (!elements.llmSubmitButton.disabled) {
+          elements.llmSubmitButton.click(); // Trigger the button click
+        }
+      }
+    });
+
+    elements.llmSubmitButton.addEventListener("click", async () => {
+      const apiKey = elements.geminiApiKeyInput.value;
+      const prompt = elements.llmPromptTextarea.value;
+      const recipeContent = elements.editTextArea.value;
+
+      if (!prompt.trim()) {
+        alert("Please enter a prompt for the LLM.");
+        elements.llmPromptTextarea.focus();
+        return;
+      }
+      if (!apiKey.trim() && !getGeminiApiKey()) {
+        // Check input field or stored value
+        alert("Please enter your Gemini API Key.");
+        elements.geminiApiKeyInput.focus();
+        if (elements.llmToolsDetails && !elements.llmToolsDetails.open) {
+          elements.llmToolsDetails.open = true;
+        }
+        return;
+      }
+
+      elements.llmSubmitButton.disabled = true;
+      elements.llmSubmitButton.textContent = "Thinking…";
+
+      try {
+        const transformedRecipe = await transformRecipeWithLLM(
+          apiKey || getGeminiApiKey() || "", // Use field value or stored value
+          prompt,
+          recipeContent,
+        );
+        elements.editTextArea.value = transformedRecipe;
+        elements.editTextArea.select();
+        updateBrowserURL(); // Update URL in case title changes due to recipe modification
+      } catch (error) {
+        // Error is already displayed by transformRecipeWithLLM via alert()
+        console.error("LLM transformation failed:", error);
+      } finally {
+        elements.llmSubmitButton.disabled = false;
+        elements.llmSubmitButton.textContent = "Submit";
+        updateSubmitButtonState();
+      }
+    });
+  }
+
   elements.tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const tab = button.getAttribute("data-tab") as TabId;

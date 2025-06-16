@@ -28,7 +28,7 @@
                             <h4>Import &amp; Edit Recipes</h4>
                             <p>
                                 Easily bring in recipes from the web and edit
-                                them in plain text (Markdown), letting you
+                                them in plain-text Markdown format, letting you
                                 customize recipes before or after cooking.
                             </p>
                         </div>
@@ -80,6 +80,38 @@ A classic way to brew a clean and flavorful cup of coffee.
 6.  Let all water drip through. This takes 1–2 minutes.
 7.  Enjoy your coffee!
                     </textarea>
+                    <details id="llm-tools-details" style="margin-top: 2em">
+                        <summary>✨ AI Assistance</summary>
+                        <div class="llm-tool-section" style="padding-top: 10px">
+                            <div style="margin-bottom: 10px">
+                                <label for="llm-api-key">Gemini API Key:</label>
+                                <input
+                                    type="password"
+                                    id="gemini-api-key"
+                                    name="gemini-api-key"
+                                    placeholder="Enter your Gemini API key"
+                                    size="32"
+                                />
+                            </div>
+                            <div style="margin-bottom: 10px">
+                                <label for="llm-prompt">Prompt:</label>
+                                <input
+                                    type="text"
+                                    id="llm-prompt"
+                                    name="llm-prompt"
+                                    placeholder="e.g. Make this vegan-friendly"
+                                    style="
+                                        width: 100%;
+                                        box-sizing: border-box;
+                                        margin-top: 5px;
+                                    "
+                                />
+                            </div>
+                            <button type="button" id="llm-submit-button">
+                                Submit
+                            </button>
+                        </div>
+                    </details>
                 </div>
                 <div class="tab-content" id="view">
                     <div id="renderedRecipeView">

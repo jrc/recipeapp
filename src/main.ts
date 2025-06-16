@@ -4,13 +4,9 @@ import * as parser from "./parser";
 import * as parseIngredient from "./parse-ingredient";
 import INGREDIENTS_EN from "./ingredients-en.json";
 
-function handleTabSwitch(tabId: string): void {
-  if (tabId === "view") {
-    const markdown = ui.elements.editTextArea.value;
-    ui.elements.renderedRecipeView.innerHTML = parser.markdownToHtml(markdown);
-  }
-}
-async function processRecipeUrl(urlToProcess: string): Promise<boolean> {
+async function fetchAndParseRecipeFromUrl(
+  urlToProcess: string,
+): Promise<boolean> {
   try {
     const response = await fetch(
       `https://corsproxy.jrcplus.workers.dev/?url=${encodeURIComponent(urlToProcess)}`,
@@ -53,7 +49,15 @@ async function processRecipeUrl(urlToProcess: string): Promise<boolean> {
     return false;
   }
 }
-async function manageFullImportCycle(
+
+function handleTabSwitch(tabId: string): void {
+  if (tabId === "view") {
+    const markdown = ui.elements.editTextArea.value;
+    ui.elements.renderedRecipeView.innerHTML = parser.markdownToHtml(markdown);
+  }
+}
+
+async function handleRecipeImport(
   url: string,
   switchToDefaultViewOnSuccess: boolean,
 ): Promise<boolean> {
@@ -66,24 +70,25 @@ async function manageFullImportCycle(
   let processingResult = false;
 
   try {
-    processingResult = await processRecipeUrl(url);
+    processingResult = await fetchAndParseRecipeFromUrl(url);
 
     if (processingResult) {
       ui.notifyUrlImportSuccess(url);
 
       if (switchToDefaultViewOnSuccess) {
         ui.switchToTab("view", handleTabSwitch, true);
-        handleTabSwitch("view");
+        handleTabSwitch("view"); // Render content after switching
       } else {
+        // If not switching, but already on view tab, refresh content
         if (ui.getCurrentTabId() === "view") {
           handleTabSwitch("view");
         }
-        ui.updateBrowserURL();
+        ui.updateBrowserURL(); // Update URL even if not switching tab
       }
     }
   } catch (error) {
     console.error("Error during import cycle management:", error);
-    processingResult = false;
+    processingResult = false; // Ensure result is false on error
   } finally {
     ui.elements.importButton.textContent = "Import";
     ui.elements.importButton.disabled =
@@ -107,7 +112,7 @@ async function initializeApp() {
   ui.initializeUI(handleTabSwitch);
 
   ui.elements.importButton.addEventListener("click", async () => {
-    await manageFullImportCycle(ui.elements.urlInput.value.trim(), true);
+    await handleRecipeImport(ui.elements.urlInput.value.trim(), true);
   });
 
   let initialTab: TabId = "import";
@@ -115,14 +120,38 @@ async function initializeApp() {
     initialTab = tabParam;
   }
 
-  ui.switchToTab(initialTab, handleTabSwitch, false);
+  // Switch to the determined initial tab, but don't update URL yet if urlParam exists
+  // as handleRecipeImport will handle it.
+  ui.switchToTab(initialTab, handleTabSwitch, !urlParam);
 
   if (urlParam) {
-    await manageFullImportCycle(urlParam, false);
+    // If a URL is provided, attempt to import it.
+    // The false argument prevents switching to 'view' tab automatically,
+    // respecting the 'tab' query parameter if present.
+    const importSuccess = await handleRecipeImport(urlParam, false);
+    // If import was successful and the initial tab was 'view', render the recipe.
+    // Or if the import was successful and no specific tab was requested (defaulting to 'import' initially),
+    // and we want to show the 'view' tab after a successful import from URL param.
+    // This logic might need refinement based on desired UX for URL param + tab param.
+    // For now, if view tab is active after import from URL, render it.
+    if (importSuccess && ui.getCurrentTabId() === "view") {
+      handleTabSwitch("view");
+    } else if (
+      importSuccess &&
+      initialTab === "import" &&
+      ui.elements.editTextArea.value.trim() !== ""
+    ) {
+      // If imported from URL, default tab was 'import', and we have content,
+      // switch to view and render. This makes 'view' the default after URL import.
+      ui.switchToTab("view", handleTabSwitch, true);
+      handleTabSwitch("view");
+    }
   } else {
+    // If no URL param, and the initial tab is 'view' and there's content (e.g. from localStorage), render it.
     if (initialTab === "view" && ui.elements.editTextArea.value.trim() !== "") {
       handleTabSwitch("view");
     }
   }
 }
+
 initializeApp();
