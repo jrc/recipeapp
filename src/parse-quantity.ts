@@ -47,10 +47,9 @@ const QUANTITY_REGEX = createQuantityRegex();
  * @param line The plain text line to process.
  * @param shouldConvertToMetric If `true`, converts US units (volume, mass, temperature) to optimal metric
  *   equivalents (e.g., cups to mL, °F to °C), displayed in parentheses. Defaults to `false`.
- * @param shouldRoundSatisfyingParam Rounding for *converted metric values*. No effect if `shouldConvertToMetric` is `false`.
- *   - `true`: Rounds to \"satisfying\" numbers (e.g., 118.295mL -> 120mL; 21.1°C -> 21°C).
+ * @param shouldRoundSatisfying Rounding for *converted metric values*. No effect if `shouldConvertToMetric` is `false`.
+ *   - `true` (default): Rounds to \"satisfying\" numbers (e.g., 118.295mL -> 120mL; 21.1°C -> 21°C).
  *   - `false`: Celsius is displayed with one decimal (e.g., \"0.0°C\"); volume/mass use higher precision.
- *   - `undefined` (default): Effectively `true` if `shouldConvertToMetric` is `true`.
  * @returns An HTML string with recognized quantities wrapped in
  *   `<span class=\"quantity\" title=\"UNIT_KEY=value\" data-value=\"quantity:UNIT_KEY=value\">original match</span>`.
  *   If converted, a metric equivalent is appended:
@@ -74,7 +73,7 @@ const QUANTITY_REGEX = createQuantityRegex();
 export function annotateQuantitiesAsHTML(
   line: string,
   shouldConvertToMetric: boolean = false,
-  shouldRoundSatisfyingParam?: boolean,
+  shouldRoundSatisfying: boolean = true,
 ): string {
   return line.replace(QUANTITY_REGEX, (match, numberPart, unitString) => {
     const unitKey = UNIT_LOOKUP.get(unitString.toLowerCase());
@@ -97,11 +96,6 @@ export function annotateQuantitiesAsHTML(
       let finalValue: number = originalValue; // For data attributes, should be numeric
       let finalUnit: UnitDefinition = originalUnit;
       let displayValueForMetricSpan: string | number = originalValue; // For display text in the metric span, e.g., "(120 ml)" or "(0.0°C)"
-
-      const applyRounding =
-        shouldRoundSatisfyingParam === undefined
-          ? shouldConvertToMetric
-          : shouldRoundSatisfyingParam;
 
       if (shouldConvertToMetric) {
         // Skip conversion if already a metric unit (e.g., "ml", "g", "°C")
@@ -127,7 +121,7 @@ export function annotateQuantitiesAsHTML(
                 );
                 finalUnit = convertedUnit;
 
-                if (applyRounding) {
+                if (shouldRoundSatisfying) {
                   finalValue = roundSatisfying(convertedValue);
                   displayValueForMetricSpan = finalValue;
                 } else {
@@ -168,7 +162,7 @@ export function annotateQuantitiesAsHTML(
                 finalUnit = baseUnit;
               }
 
-              if (applyRounding) {
+              if (shouldRoundSatisfying) {
                 finalValue = roundSatisfying(finalValue);
               } else {
                 finalValue = parseFloat(finalValue.toFixed(7));
