@@ -86,11 +86,12 @@ A classic way to brew a clean and flavorful cup of coffee.
                             <div style="margin-bottom: 10px">
                                 <label for="llm-api-key">Gemini API Key:</label>
                                 <input
-                                    type="password"
+                                    type="text"
                                     id="gemini-api-key"
                                     name="gemini-api-key"
                                     placeholder="Enter your Gemini API key"
-                                    size="32"
+                                    style="font-family: monospace"
+                                    size="40"
                                 />
                             </div>
                             <div style="margin-bottom: 10px">
@@ -99,7 +100,7 @@ A classic way to brew a clean and flavorful cup of coffee.
                                     type="text"
                                     id="llm-prompt"
                                     name="llm-prompt"
-                                    placeholder="e.g. Make this vegan-friendly"
+                                    placeholder='e.g. "Make this vegan-friendly", "more spicy"'
                                     style="
                                         width: 100%;
                                         box-sizing: border-box;

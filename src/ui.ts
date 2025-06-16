@@ -10,7 +10,6 @@ import {
   getGeminiApiKey,
   setGeminiApiKey,
   transformRecipeWithLLM,
-  // initializeLLMErrorDisplay was removed here
 } from "./llm";
 
 // Document Title Management
@@ -44,7 +43,7 @@ export const elements = {
   geminiApiKeyInput: document.getElementById(
     "gemini-api-key",
   ) as HTMLInputElement,
-  llmPromptTextarea: document.getElementById("llm-prompt") as HTMLInputElement,
+  llmPromptInput: document.getElementById("llm-prompt") as HTMLInputElement,
   llmSubmitButton: document.getElementById(
     "llm-submit-button",
   ) as HTMLButtonElement,
@@ -141,6 +140,7 @@ export function initializeUI(
     const savedApiKey = getGeminiApiKey();
     if (savedApiKey) {
       elements.geminiApiKeyInput.value = savedApiKey;
+      elements.llmToolsDetails.open = true;
     }
     elements.geminiApiKeyInput.addEventListener("change", () => {
       setGeminiApiKey(elements.geminiApiKeyInput.value);
@@ -151,25 +151,23 @@ export function initializeUI(
   if (
     elements.llmSubmitButton &&
     elements.geminiApiKeyInput &&
-    elements.llmPromptTextarea &&
+    elements.llmPromptInput &&
     elements.editTextArea
   ) {
     const updateSubmitButtonState = () => {
       elements.llmSubmitButton.disabled =
-        elements.llmPromptTextarea.value.trim() === "";
+        elements.llmPromptInput.value.trim() === "" ||
+        elements.geminiApiKeyInput.value.trim() === "";
     };
 
     // Set initial state of the submit button
     updateSubmitButtonState();
 
     // Update button state on prompt input
-    elements.llmPromptTextarea.addEventListener(
-      "input",
-      updateSubmitButtonState,
-    );
+    elements.llmPromptInput.addEventListener("input", updateSubmitButtonState);
 
     // Handle "Enter" key in prompt input
-    elements.llmPromptTextarea.addEventListener("keydown", (event) => {
+    elements.llmPromptInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault(); // Prevent default action (e.g., newline in textarea or form submission)
         if (!elements.llmSubmitButton.disabled) {
@@ -180,12 +178,12 @@ export function initializeUI(
 
     elements.llmSubmitButton.addEventListener("click", async () => {
       const apiKey = elements.geminiApiKeyInput.value;
-      const prompt = elements.llmPromptTextarea.value;
+      const prompt = elements.llmPromptInput.value;
       const recipeContent = elements.editTextArea.value;
 
       if (!prompt.trim()) {
         alert("Please enter a prompt for the LLM.");
-        elements.llmPromptTextarea.focus();
+        elements.llmPromptInput.focus();
         return;
       }
       if (!apiKey.trim() && !getGeminiApiKey()) {
@@ -198,6 +196,7 @@ export function initializeUI(
         return;
       }
 
+      elements.llmPromptInput.disabled = true;
       elements.llmSubmitButton.disabled = true;
       elements.llmSubmitButton.textContent = "Thinking…";
 
@@ -211,9 +210,10 @@ export function initializeUI(
         elements.editTextArea.select();
         updateBrowserURL(); // Update URL in case title changes due to recipe modification
       } catch (error) {
-        // Error is already displayed by transformRecipeWithLLM via alert()
         console.error("LLM transformation failed:", error);
       } finally {
+        elements.llmPromptInput.disabled = false; // Re-enable prompt after processing
+        elements.llmPromptInput.value = ""; // Clear the prompt input
         elements.llmSubmitButton.disabled = false;
         elements.llmSubmitButton.textContent = "Submit";
         updateSubmitButtonState();
