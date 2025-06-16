@@ -65,3 +65,29 @@ body {
 .tab-content.active {
     display: block;
 }
+
+/* General Purpose Button Styles */
+.button-primary {
+    /* Layout */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+
+    /* Metrics */
+    padding: var(--padding-base-vertical) var(--padding-base-horizontal);
+    border-radius: var(--border-radius-base);
+    font-size: var(--font-size-base);
+
+    /* Appearance */
+    background-color: var(--primary-blue);
+    border: var(--border-width-base) var(--border-style-base) transparent;
+    color: var(--white);
+
+    /* Behavior */
+    cursor: pointer;
+}
+
+.button-primary:disabled {
+    background-color: rgb(108, 117, 125);
+    cursor: default;
+}

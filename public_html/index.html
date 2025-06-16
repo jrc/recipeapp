@@ -21,7 +21,9 @@
                 <div class="tab-content active" id="import">
                     <form id="import-form">
                         <input type="url" placeholder="Enter a recipe URL" />
-                        <button type="submit">Import</button>
+                        <button type="submit" class="button-primary">
+                            Import
+                        </button>
                     </form>
                     <div class="feature-section">
                         <div class="feature-item">
@@ -49,6 +51,13 @@
                                 automatically annotated with metric conversions,
                                 using intelligently chosen units and rounded
                                 numbers.
+                            </p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>AI Assistance</h4>
+                            <p>
+                                Optionally ask Google Gemini to help you write
+                                and transform recipes.
                             </p>
                         </div>
                     </div>
@@ -80,39 +89,48 @@ A classic way to brew a clean and flavorful cup of coffee.
 6.  Let all water drip through. This takes 1–2 minutes.
 7.  Enjoy your coffee!
                     </textarea>
-                    <details id="ai-assistance-details" style="margin-top: 1em">
-                        <summary>✨ AI Assistance</summary>
-                        <div class="llm-tool-section" style="padding-top: 10px">
-                            <div style="margin-bottom: 10px">
+                    <details id="ai-assistance-details">
+                        <summary>AI Assistance</summary>
+                        <div class="llm-tool-section">
+                            <div>
                                 <label for="llm-prompt">Prompt:</label>
                                 <input
                                     type="text"
                                     id="llm-prompt"
                                     name="llm-prompt"
-                                    placeholder='e.g. "Make this vegan-friendly", "more spicy"'
-                                    style="
-                                        width: 100%;
-                                        box-sizing: border-box;
-                                        margin-top: 5px;
-                                    "
+                                    list="llm-prompt-suggestions"
                                 />
+                                <datalist id="llm-prompt-suggestions">
+                                    <option
+                                        value="Group the ingredients by how they're used in the instructions"
+                                    ></option>
+                                    <option
+                                        value="Write the ingredient quantities into the instructions, taken into account actual usage. Split overlong instruction steps."
+                                    ></option>
+                                    <option
+                                        value="Make this vegan-friendly"
+                                    ></option>
+                                </datalist>
                             </div>
-                            <button type="button" id="llm-submit-button">
+                            <button
+                                type="button"
+                                id="llm-submit-button"
+                                class="button-primary"
+                            >
                                 Submit
                             </button>
                         </div>
                     </details>
-                    <details id="settings-details" style="margin-top: 1em">
+                    <details id="settings-details">
                         <summary>Settings</summary>
-                        <div class="llm-tool-section" style="padding-top: 10px">
-                            <div style="margin-bottom: 10px">
+                        <div class="llm-tool-section">
+                            <div>
                                 <label for="llm-api-key">Gemini API Key:</label>
                                 <input
                                     type="text"
                                     id="gemini-api-key"
                                     name="gemini-api-key"
                                     placeholder="Enter your Gemini API key"
-                                    style="font-family: monospace"
                                     size="40"
                                 />
                                 <small

@@ -1,9 +1,6 @@
 - volume-to-mass conversion for butter/flour/sugar
 
 - accept API key to add LLM-assisted editing
-    - chunk ingredients
     - visually link ingredients to usage in ingredients
-    - Putting the amounts in the instructions (carefully)
-    - splitting up overlong steps
 
 - Scale all quantities

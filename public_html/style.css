@@ -63,32 +63,40 @@ main {
     color: var(--dark-gray);
 }
 
-#import button {
-    /* Layout */
-    display: block;
-    margin: auto;
-
-    /* Metrics */
-    padding: var(--padding-base-vertical) var(--padding-base-horizontal);
-    border-radius: var(--border-radius-base);
-    font-size: var(--font-size-base);
-
-    /* Appearance */
-    background-color: var(--primary-blue);
-    border: var(--border-width-base) var(--border-style-base) transparent;
-    color: var(--white);
-
-    /* Behavior */
-    cursor: pointer;
-}
-
-#import button:disabled {
-    background-color: rgb(108, 117, 125);
-}
-
 #edit textarea {
     width: 100%;
     box-sizing: border-box;
+}
+
+/* Styles for AI assistance and settings sections */
+
+#ai-assistance-details,
+#settings-details {
+    background-color: #f8f9fa;
+    padding: 1em;
+    max-width: 80%;
+    margin: 0.5em auto;
+}
+
+#ai-assistance-details .llm-tool-section,
+#settings-details .llm-tool-section {
+    padding-top: 10px;
+}
+
+#ai-assistance-details .llm-tool-section > div,
+#settings-details .llm-tool-section > div {
+    margin-bottom: 10px;
+}
+
+#ai-assistance-details input[type="text"] {
+    /* Assuming only text inputs here */
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 5px;
+}
+
+#settings-details input[type="text"]#gemini-api-key {
+    font-family: monospace;
 }
 
 /* Rendered recipe */

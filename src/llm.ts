@@ -105,7 +105,7 @@ Current Recipe (in Markdown format):
 ${recipeContent}
 ---
 
-Please provide ONLY the complete, updated recipe in Markdown format, based on the user's request. Do not include any conversational preamble or explanation, just the recipe.`;
+Provide ONLY the complete, updated recipe in Markdown format, based on the user's request. Do not include any conversational preamble or explanation, just the recipe.`;
 
   const payload: GeminiRequestPayload = {
     contents: [
@@ -160,10 +160,26 @@ Please provide ONLY the complete, updated recipe in Markdown format, based on th
         firstCandidate.content.parts &&
         firstCandidate.content.parts.length > 0
       ) {
-        const transformedText = firstCandidate.content.parts
+        let transformedText = firstCandidate.content.parts
           .map((part) => part.text)
           .join("");
-        return transformedText;
+
+        transformedText = transformedText.trim(); // Overall trim first
+
+        if (transformedText.startsWith("---\n")) {
+          transformedText = transformedText.substring(4);
+        }
+        if (transformedText.endsWith("\n---")) {
+          transformedText = transformedText.substring(
+            0,
+            transformedText.length - 4,
+          );
+        }
+
+        // Also trim again in case stripping revealed new whitespace.
+        transformedText = transformedText.trim();
+
+        return transformedText; // Final state
       }
     }
 
@@ -172,30 +188,11 @@ Please provide ONLY the complete, updated recipe in Markdown format, based on th
     alert(noContentMsg);
     throw new Error(noContentMsg);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-
-    // Check if the message is one we specifically alerted and threw from the try block.
-    // This is to avoid a generic "Failed to process..." alert if a specific one was already shown.
-    const knownAlertedMessagesPatterns = [
-      "Gemini API Key is missing",
-      "Gemini API request failed:",
-      "Gemini blocked the request.",
-      "Gemini API returned a successful response, but it did not contain the expected recipe content.",
-    ];
-
-    let alreadyAlertedByTryCatchLogic = false;
-    for (const pattern of knownAlertedMessagesPatterns) {
-      if (message.startsWith(pattern)) {
-        alreadyAlertedByTryCatchLogic = true;
-        break;
-      }
-    }
-
-    if (!alreadyAlertedByTryCatchLogic) {
-      // This error is likely from fetch() itself (network error) or response.json() (parsing error),
-      // or some other unexpected issue not caught by the specific checks above.
-      alert(`Failed to process request with Gemini: ${message}`);
-    }
+    // The try block now handles all specific alerts.
+    // Errors from fetch() or response.json() that are not caught by specific checks in the try block
+    // (e.g., network errors, malformed JSON that isn't an API error response)
+    // will be caught here and re-thrown without an additional alert from this function.
+    // The caller is responsible for handling these re-thrown errors.
     // Re-throw the original error so the caller can also handle it (e.g., update UI state like stopping a spinner).
     throw error;
   }

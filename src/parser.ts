@@ -130,6 +130,8 @@ export function markdownToHtml(markdown: string): string {
   html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
   html = html.replace(/^---\s*$/gm, "<hr>");
   html = html.replace(/^>\s*(.*)$/gm, "<blockquote>$1</blockquote>");
+  html = html.replace(/^####\s*(.*)$/gm, "<h4>$1</h4>");
+  html = html.replace(/^###\s*(.*)$/gm, "<h3>$1</h3>");
   html = html.replace(/^##\s*(.*)$/gm, "<h2>$1</h2>");
   html = html.replace(/^#\s*(.*)$/gm, "<h1>$1</h1>");
 
