@@ -14,15 +14,9 @@ import {
 
 const DEFAULT_APP_TITLE = "Recipe App";
 
-function setDocumentTitle(recipeTitle: string | null): void {
-  if (recipeTitle && recipeTitle.trim() !== "") {
-    document.title = `${recipeTitle} | ${DEFAULT_APP_TITLE}`;
-  } else {
-    document.title = DEFAULT_APP_TITLE;
-  }
-}
-
 export type TabId = "import" | "edit" | "view";
+
+// DOM element references
 export const elements = {
   tabButtons: document.querySelectorAll(
     ".tab-button",
@@ -49,9 +43,21 @@ export const elements = {
   settingsDetails: document.getElementById(
     "settings-details",
   ) as HTMLDetailsElement,
+  aiAssistanceDetails: document.getElementById(
+    "ai-assistance-details",
+  ) as HTMLDetailsElement,
 };
 
-// Called from main.ts to set the URL from a query parameter
+// Utility functions
+function setDocumentTitle(recipeTitle: string | null): void {
+  if (recipeTitle && recipeTitle.trim() !== "") {
+    document.title = `${recipeTitle} | ${DEFAULT_APP_TITLE}`;
+  } else {
+    document.title = DEFAULT_APP_TITLE;
+  }
+}
+
+// Public API functions
 export function setInitialUrl(url: string | null): void {
   if (url) {
     elements.urlInput.value = url;
@@ -128,91 +134,139 @@ export function updateBrowserURL(): void {
   }
 }
 
+// Main initialization function
 export function initializeUI(
   onTabSwitchCallback: (tabId: TabId) => void,
 ): void {
-  // Load saved Gemini API key
-  if (elements.geminiApiKeyInput) {
-    const savedApiKey = getGeminiApiKey();
-    if (savedApiKey) {
-      elements.geminiApiKeyInput.value = savedApiKey;
-    }
-    elements.geminiApiKeyInput.addEventListener("change", () => {
-      setGeminiApiKey(elements.geminiApiKeyInput.value);
-    });
+  // AI assistance and API key setup
+  setupAIAssistance();
+
+  // LLM submit button and prompt handling
+  setupLLMHandling();
+
+  // Tab navigation
+  setupTabNavigation(onTabSwitchCallback);
+
+  // Import/edit form handling
+  setupFormHandling();
+
+  // Cleanup handlers
+  setupCleanupHandlers();
+}
+
+function setupAIAssistance(): void {
+  if (!elements.geminiApiKeyInput || !elements.aiAssistanceDetails) {
+    return;
   }
 
-  // LLM submit button event listener and prompt input handling
+  // Load saved API key
+  const savedApiKey = getGeminiApiKey();
+  if (savedApiKey) {
+    elements.geminiApiKeyInput.value = savedApiKey;
+  }
+
+  const updateAIState = () => {
+    const apiKey = elements.geminiApiKeyInput.value.trim();
+    const isEnabled = apiKey !== "";
+
+    // Add visual cue to the details summary/content when disabled
+    elements.aiAssistanceDetails.style.opacity = isEnabled ? "" : "0.6";
+  };
+
+  // Initial state update
+  updateAIState();
+
+  // Auto-open AI Assistance if key is present on load
+  if (elements.geminiApiKeyInput.value.trim() !== "") {
+    elements.aiAssistanceDetails.open = true;
+  }
+
+  // Event listeners for API key changes
+  elements.geminiApiKeyInput.addEventListener("input", updateAIState);
+  elements.geminiApiKeyInput.addEventListener("change", () => {
+    setGeminiApiKey(elements.geminiApiKeyInput.value);
+  });
+}
+
+function setupLLMHandling(): void {
   if (
-    elements.llmSubmitButton &&
-    elements.geminiApiKeyInput &&
-    elements.llmPromptInput &&
-    elements.editTextArea
+    !elements.llmSubmitButton ||
+    !elements.geminiApiKeyInput ||
+    !elements.llmPromptInput ||
+    !elements.editTextArea
   ) {
-    const updateSubmitButtonState = () => {
-      elements.llmSubmitButton.disabled =
-        elements.llmPromptInput.value.trim() === "" ||
-        elements.geminiApiKeyInput.value.trim() === "";
-    };
-
-    // Set initial state of the submit button
-    updateSubmitButtonState();
-
-    // Update button state on prompt input
-    elements.llmPromptInput.addEventListener("input", updateSubmitButtonState);
-
-    // Handle "Enter" key in prompt input
-    elements.llmPromptInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault(); // Prevent default action (e.g., newline in textarea or form submission)
-        if (!elements.llmSubmitButton.disabled) {
-          elements.llmSubmitButton.click(); // Trigger the button click
-        }
-      }
-    });
-
-    elements.llmSubmitButton.addEventListener("click", async () => {
-      const apiKey = elements.geminiApiKeyInput.value;
-      const prompt = elements.llmPromptInput.value;
-      const recipeContent = elements.editTextArea.value;
-
-      console.assert(
-        prompt.trim() !== "",
-        "Submit clicked with empty prompt but button should have been disabled",
-      );
-      console.assert(
-        apiKey.trim() !== "",
-        "Submit clicked with empty API key but button should have been disabled",
-      );
-      if (!prompt.trim() || (!apiKey.trim() && !getGeminiApiKey())) {
-        return;
-      }
-
-      elements.llmPromptInput.disabled = true;
-      elements.llmSubmitButton.disabled = true;
-      elements.llmSubmitButton.textContent = "Thinking…";
-
-      try {
-        const transformedRecipe = await transformRecipeWithLLM(
-          apiKey,
-          prompt,
-          recipeContent,
-        );
-        elements.editTextArea.value = transformedRecipe;
-        elements.editTextArea.select();
-        updateBrowserURL(); // Update URL in case title changes due to recipe modification
-      } catch (error) {
-        console.error("LLM transformation failed:", error);
-      } finally {
-        elements.llmPromptInput.disabled = false;
-        elements.llmPromptInput.value = "";
-        elements.llmSubmitButton.disabled = false;
-        elements.llmSubmitButton.textContent = "Submit";
-        updateSubmitButtonState();
-      }
-    });
+    return;
   }
 
+  const updateSubmitButtonState = () => {
+    elements.llmSubmitButton.disabled =
+      elements.llmPromptInput.value.trim() === "" ||
+      elements.geminiApiKeyInput.value.trim() === "";
+  };
+
+  // Set initial state of the submit button
+  updateSubmitButtonState();
+
+  // Update button state on input changes
+  elements.llmPromptInput.addEventListener("input", updateSubmitButtonState);
+  elements.geminiApiKeyInput.addEventListener("input", updateSubmitButtonState);
+
+  // Handle "Enter" key in prompt input
+  elements.llmPromptInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      if (!elements.llmSubmitButton.disabled) {
+        elements.llmSubmitButton.click();
+      }
+    }
+  });
+
+  // Handle submit button click
+  elements.llmSubmitButton.addEventListener("click", async () => {
+    const apiKey = elements.geminiApiKeyInput.value;
+    const prompt = elements.llmPromptInput.value;
+    const recipeContent = elements.editTextArea.value;
+
+    console.assert(
+      prompt.trim() !== "",
+      "Submit clicked with empty prompt but button should have been disabled",
+    );
+    console.assert(
+      apiKey.trim() !== "",
+      "Submit clicked with empty API key but button should have been disabled",
+    );
+
+    if (!prompt.trim() || (!apiKey.trim() && !getGeminiApiKey())) {
+      return;
+    }
+
+    // Disable controls during processing
+    elements.llmPromptInput.disabled = true;
+    elements.llmSubmitButton.disabled = true;
+    elements.llmSubmitButton.textContent = "Thinking…";
+
+    try {
+      const transformedRecipe = await transformRecipeWithLLM(
+        apiKey,
+        prompt,
+        recipeContent,
+      );
+      elements.editTextArea.value = transformedRecipe;
+      elements.editTextArea.select();
+      updateBrowserURL(); // Update URL in case title changes due to recipe modification
+    } catch (error) {
+      console.error("LLM transformation failed:", error);
+    } finally {
+      // Re-enable controls and reset state
+      elements.llmPromptInput.disabled = false;
+      elements.llmPromptInput.value = "";
+      elements.llmSubmitButton.textContent = "Submit";
+      updateSubmitButtonState(); // This will properly set the disabled state
+    }
+  });
+}
+
+function setupTabNavigation(onTabSwitchCallback: (tabId: TabId) => void): void {
   elements.tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const tab = button.getAttribute("data-tab") as TabId;
@@ -221,27 +275,35 @@ export function initializeUI(
       }
     });
   });
+}
 
+function setupFormHandling(): void {
+  // URL input handling
   elements.urlInput.addEventListener("change", () => {
     elements.importButton.disabled = elements.urlInput.value.trim() === "";
     elements.editTextArea.value = "";
     updateBrowserURL();
   });
 
+  // Edit textarea handling
   elements.editTextArea.addEventListener("input", () => {
     elements.urlInput.value = "";
     elements.importButton.disabled = elements.urlInput.value.trim() === "";
     updateBrowserURL();
   });
 
+  // Import form handling
   elements.importForm.addEventListener("submit", (event) => {
     event.preventDefault();
   });
+}
 
+function setupCleanupHandlers(): void {
   // Release wake lock when the page is closed or navigated away
   window.addEventListener("beforeunload", releaseWakeLock);
 }
 
+// DOM content loaded event handlers
 document.addEventListener("DOMContentLoaded", () => {
   const renderedRecipeView = document.getElementById("renderedRecipeView");
 
@@ -255,6 +317,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isDurationClick) {
         return;
       }
+
       if (target.tagName === "LI") {
         target.classList.toggle("strikethrough");
       } else if (

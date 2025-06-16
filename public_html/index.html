@@ -56,7 +56,7 @@
                         <div class="feature-item">
                             <h4>AI Assistance</h4>
                             <p>
-                                Optionally ask Google Gemini to help you write
+                                Optionally get Google Gemini to help you write
                                 and transform recipes.
                             </p>
                         </div>
@@ -105,7 +105,7 @@ A classic way to brew a clean and flavorful cup of coffee.
                                         value="Group the ingredients by how they're used in the instructions"
                                     ></option>
                                     <option
-                                        value="Write the ingredient quantities into the instructions, taken into account actual usage. Split overlong instruction steps."
+                                        value="Write the ingredient quantities into the instructions, reflecting actual usage. Split overlong instruction steps."
                                     ></option>
                                     <option
                                         value="Make this vegan-friendly"
@@ -142,46 +142,6 @@ A classic way to brew a clean and flavorful cup of coffee.
                             </div>
                         </div>
                     </details>
-                    <script>
-                        document.addEventListener("DOMContentLoaded", () => {
-                            const apiKeyInput =
-                                document.getElementById("gemini-api-key");
-                            const aiAssistanceDetails = document.getElementById(
-                                "ai-assistance-details",
-                            );
-                            const promptInput =
-                                document.getElementById("llm-prompt");
-                            const submitButton =
-                                document.getElementById("llm-submit-button");
-
-                            const updateAIState = () => {
-                                const apiKey = apiKeyInput.value.trim();
-                                const isEnabled = apiKey !== "";
-
-                                promptInput.disabled = !isEnabled;
-                                submitButton.disabled = !isEnabled;
-
-                                // Add a visual cue to the details summary/content when disabled
-                                aiAssistanceDetails.style.opacity = isEnabled
-                                    ? ""
-                                    : "0.6";
-                            };
-
-                            // Initial state update
-                            updateAIState();
-
-                            // Update state when API key changes
-                            apiKeyInput.addEventListener(
-                                "input",
-                                updateAIState,
-                            );
-
-                            // Auto-open AI Assistance if key is present on load
-                            if (apiKeyInput.value.trim() !== "") {
-                                aiAssistanceDetails.open = true;
-                            }
-                        });
-                    </script>
                 </div>
                 <div class="tab-content" id="view">
                     <div id="renderedRecipeView">
